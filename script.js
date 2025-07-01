@@ -1,6 +1,6 @@
 class NoticeBoard {
     constructor() {
-        this.notices = this.loadNotices();
+        this.notices = [];
         this.currentFilter = 'all';
         this.currentSort = 'date-desc';
         this.viewMode = 'grid';
@@ -11,12 +11,13 @@ class NoticeBoard {
         this.darkMode = localStorage.getItem('darkMode') === 'true';
         this.isAdmin = sessionStorage.getItem('isAdmin') === 'true';
         this.adminCode = 'teju_smp';
+        this.pollInterval = null;
+        this.lastModified = null;
         this.initializeTheme();
         this.initializeEditor();
         this.initializeEventListeners();
         this.initializeAdminState();
-        this.updateAvailableTags();
-        this.renderNotices();
+        this.initializeJSONBin();
     }
 
     initializeEventListeners() {
@@ -168,11 +169,9 @@ class NoticeBoard {
 
         try {
             if (this.editingNotice) {
-                this.updateNotice(notice);
-                this.showNotification(`Notice "${notice.title}" updated successfully!`, 'success');
+                await this.updateNotice(notice);
             } else {
-                this.addNotice(notice);
-                this.showNotification(`Notice "${notice.title}" added successfully!`, 'success');
+                await this.addNotice(notice);
             }
             this.closeModal();
         } catch (error) {
@@ -181,20 +180,47 @@ class NoticeBoard {
         }
     }
 
-    addNotice(notice) {
-        this.notices.unshift(notice);
-        this.saveNotices();
-        this.updateAvailableTags();
-        this.renderNotices();
-    }
-    
-    updateNotice(notice) {
-        const index = this.notices.findIndex(n => n.id === notice.id);
-        if (index !== -1) {
-            this.notices[index] = notice;
-            this.saveNotices();
+    async addNotice(notice) {
+        if (this.isJSONBinConfigured()) {
+            try {
+                this.notices.unshift(notice);
+                await this.saveToJSONBin();
+                this.showNotification(`Notice "${notice.title}" added successfully!`, 'success');
+            } catch (error) {
+                console.error('Error adding notice to JSONBin:', error);
+                this.showNotification('Error saving notice online. Changes saved locally.', 'error');
+                this.saveNoticesLocally();
+            }
+        } else {
+            this.notices.unshift(notice);
+            this.saveNoticesLocally();
             this.updateAvailableTags();
             this.renderNotices();
+        }
+    }
+    
+    async updateNotice(notice) {
+        if (this.isJSONBinConfigured()) {
+            try {
+                const index = this.notices.findIndex(n => n.id === notice.id);
+                if (index !== -1) {
+                    this.notices[index] = notice;
+                    await this.saveToJSONBin();
+                    this.showNotification(`Notice "${notice.title}" updated successfully!`, 'success');
+                }
+            } catch (error) {
+                console.error('Error updating notice in JSONBin:', error);
+                this.showNotification('Error updating notice online. Changes saved locally.', 'error');
+                this.saveNoticesLocally();
+            }
+        } else {
+            const index = this.notices.findIndex(n => n.id === notice.id);
+            if (index !== -1) {
+                this.notices[index] = notice;
+                this.saveNoticesLocally();
+                this.updateAvailableTags();
+                this.renderNotices();
+            }
         }
     }
     
@@ -205,17 +231,30 @@ class NoticeBoard {
         }
     }
 
-    deleteNotice(id) {
+    async deleteNotice(id) {
         if (!this.isAdmin) {
             this.showNotification('Admin login required to delete notices', 'error');
             return;
         }
         
         if (confirm('Are you sure you want to delete this notice?')) {
-            this.notices = this.notices.filter(notice => notice.id !== id);
-            this.saveNotices();
-            this.renderNotices();
-            this.showNotification('Notice deleted successfully!', 'success');
+            if (this.isJSONBinConfigured()) {
+                try {
+                    this.notices = this.notices.filter(notice => notice.id !== id);
+                    await this.saveToJSONBin();
+                    this.showNotification('Notice deleted successfully!', 'success');
+                } catch (error) {
+                    console.error('Error deleting notice from JSONBin:', error);
+                    this.showNotification('Error deleting notice online. Removed locally.', 'error');
+                    this.saveNoticesLocally();
+                    this.renderNotices();
+                }
+            } else {
+                this.notices = this.notices.filter(notice => notice.id !== id);
+                this.saveNoticesLocally();
+                this.renderNotices();
+                this.showNotification('Notice deleted successfully!', 'success');
+            }
         }
     }
 
@@ -505,17 +544,141 @@ class NoticeBoard {
         }, 3000);
     }
 
-    loadNotices() {
+    initializeJSONBin() {
+        if (this.isJSONBinConfigured()) {
+            this.loadFromJSONBin();
+            this.startPolling();
+        } else {
+            console.log('JSONBin not configured, using local storage');
+            this.loadNoticesLocally();
+        }
+    }
+
+    isJSONBinConfigured() {
+        return window.JSONBIN_CONFIG && 
+               window.JSONBIN_CONFIG.apiKey !== 'YOUR_API_KEY' && 
+               window.JSONBIN_CONFIG.binId !== 'YOUR_BIN_ID';
+    }
+
+    async loadFromJSONBin() {
+        try {
+            const response = await fetch(`${window.JSONBIN_CONFIG.baseUrl}/b/${window.JSONBIN_CONFIG.binId}/latest`, {
+                method: 'GET',
+                headers: {
+                    'X-Master-Key': window.JSONBIN_CONFIG.apiKey,
+                    'X-Bin-Meta': 'false'
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                this.notices = data.notices || [];
+                this.lastModified = response.headers.get('X-Bin-Version-Updated') || new Date().toISOString();
+                
+                if (this.notices.length === 0) {
+                    this.notices = this.loadSampleNotices();
+                    await this.saveToJSONBin();
+                }
+            } else {
+                throw new Error(`HTTP ${response.status}`);
+            }
+        } catch (error) {
+            console.error('Error loading from JSONBin:', error);
+            this.showNotification('Error connecting to server. Using offline mode.', 'error');
+            this.loadNoticesLocally();
+        }
+        
+        this.updateAvailableTags();
+        this.renderNotices();
+    }
+
+    async saveToJSONBin() {
+        if (!this.isJSONBinConfigured()) return;
+        
+        try {
+            const response = await fetch(`${window.JSONBIN_CONFIG.baseUrl}/b/${window.JSONBIN_CONFIG.binId}`, {
+                method: 'PUT',
+                headers: {
+                    'X-Master-Key': window.JSONBIN_CONFIG.apiKey,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    notices: this.notices,
+                    lastUpdated: new Date().toISOString()
+                })
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                this.lastModified = result.metadata.version_updated;
+                this.saveNoticesLocally(); // Also save locally as backup
+                this.updateAvailableTags();
+                this.renderNotices();
+            } else {
+                throw new Error(`HTTP ${response.status}`);
+            }
+        } catch (error) {
+            console.error('Error saving to JSONBin:', error);
+            throw error;
+        }
+    }
+
+    async checkForUpdates() {
+        if (!this.isJSONBinConfigured()) return;
+        
+        try {
+            const response = await fetch(`${window.JSONBIN_CONFIG.baseUrl}/b/${window.JSONBIN_CONFIG.binId}/latest`, {
+                method: 'GET',
+                headers: {
+                    'X-Master-Key': window.JSONBIN_CONFIG.apiKey,
+                    'X-Bin-Meta': 'false'
+                }
+            });
+
+            if (response.ok) {
+                const lastModified = response.headers.get('X-Bin-Version-Updated');
+                if (lastModified !== this.lastModified) {
+                    const data = await response.json();
+                    this.notices = data.notices || [];
+                    this.lastModified = lastModified;
+                    this.updateAvailableTags();
+                    this.renderNotices();
+                }
+            }
+        } catch (error) {
+            console.error('Error checking for updates:', error);
+        }
+    }
+
+    startPolling() {
+        if (this.pollInterval) {
+            clearInterval(this.pollInterval);
+        }
+        
+        // Poll every 10 seconds for updates
+        this.pollInterval = setInterval(() => {
+            this.checkForUpdates();
+        }, 10000);
+    }
+
+    loadNoticesLocally() {
         try {
             const stored = localStorage.getItem('college-notices');
             if (stored) {
-                return JSON.parse(stored);
+                this.notices = JSON.parse(stored);
+            } else {
+                this.notices = this.loadSampleNotices();
+                this.saveNoticesLocally();
             }
         } catch (error) {
-            console.error('Error loading notices:', error);
+            console.error('Error loading notices locally:', error);
+            this.notices = this.loadSampleNotices();
         }
-        
-        // Return sample notices if no stored data
+        this.updateAvailableTags();
+        this.renderNotices();
+    }
+
+    loadSampleNotices() {
         const today = new Date();
         const tomorrow = new Date(today);
         tomorrow.setDate(today.getDate() + 1);
@@ -583,12 +746,12 @@ class NoticeBoard {
         ];
     }
 
-    saveNotices() {
+    saveNoticesLocally() {
         try {
             localStorage.setItem('college-notices', JSON.stringify(this.notices));
         } catch (error) {
-            console.error('Error saving notices:', error);
-            this.showNotification('Error saving notice. Please try again.', 'error');
+            console.error('Error saving notices locally:', error);
+            this.showNotification('Error saving notice locally. Please try again.', 'error');
         }
     }
     
