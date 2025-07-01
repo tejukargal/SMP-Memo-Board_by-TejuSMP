@@ -231,37 +231,16 @@
 
     <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
     
-    <!-- Firebase Configuration -->
-    <script type="module">
-        // Import the functions you need from the SDKs you need
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getDatabase, ref, push, set, onValue, remove, update } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
-
-        // Your web app's Firebase configuration
-        
-// Your web app's Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyDwODW1OkeYUCvImOF_JlSg7bIp2Kp_U-Q",
-  authDomain: "college-notice-board-8b845.firebaseapp.com",
-  databaseURL: "https://college-notice-board-8b845-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "college-notice-board-8b845",
-  storageBucket: "college-notice-board-8b845.firebasestorage.app",
-  messagingSenderId: "130862087441",
-  appId: "1:130862087441:web:1c3359519a1d5eef0420b0"
-};
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const database = getDatabase(app);
-
-        // Make Firebase available globally
-        window.firebaseDb = database;
-        window.firebaseRef = ref;
-        window.firebasePush = push;
-        window.firebaseSet = set;
-        window.firebaseOnValue = onValue;
-        window.firebaseRemove = remove;
-        window.firebaseUpdate = update;
+    <!-- JSONBin Configuration -->
+    <script>
+        // JSONBin.io Configuration
+        // Replace 'YOUR_API_KEY' with your actual JSONBin.io API key
+        // Replace 'YOUR_BIN_ID' with your actual bin ID
+        window.JSONBIN_CONFIG = {
+            apiKey: $2a$10$H.DrlHVNkCpqrbUq6BT2JuXigtFUAiwUYUbj6sxLHZruM3neHGb9G,
+            binId: 686019,
+            baseUrl: 'https://api.jsonbin.io/v3'
+        };
     </script>
     
     <script src="script.js"></script>
