@@ -87,7 +87,7 @@ class NoticeBoard {
         if (notice) {
             // Populate form for editing
             document.getElementById('noticeTitle').value = notice.title;
-            this.quill.setText(notice.content);
+            this.quill.root.innerHTML = notice.content;
             document.getElementById('noticeCategory').value = notice.category;
             document.getElementById('noticePriority').value = notice.priority;
             document.getElementById('noticeDate').value = notice.date;
@@ -112,7 +112,7 @@ class NoticeBoard {
         this.editingNotice = null;
     }
 
-    handleFormSubmit(e) {
+    async handleFormSubmit(e) {
         e.preventDefault();
         
         // Check if admin is logged in for adding/editing notices
@@ -123,7 +123,7 @@ class NoticeBoard {
         
         // Get form values
         const title = document.getElementById('noticeTitle').value.trim();
-        const content = this.quill.getText().trim(); // Use plain text instead of HTML
+        const content = this.quill.root.innerHTML.trim(); // Use HTML content for rich formatting
         const category = document.getElementById('noticeCategory').value;
         const date = document.getElementById('noticeDate').value;
         
@@ -135,7 +135,7 @@ class NoticeBoard {
         }
         
         // Validate content
-        if (!content || content.length === 0) {
+        if (!content || content === '<p><br></p>' || this.quill.getText().trim().length === 0) {
             this.showNotification('Please enter content for the notice', 'error');
             this.quill.focus();
             return;
@@ -452,7 +452,7 @@ class NoticeBoard {
                     </div>
                 </div>
                 <div class="notice-content">
-                    ${this.escapeHtml(notice.content)}
+                    ${notice.content}
                 </div>
                 ${notice.deadline ? `<div class="deadline-info">
                     <i class="fas fa-clock"></i>
@@ -561,30 +561,35 @@ class NoticeBoard {
     }
 
     async loadFromJSONBin() {
+        this.showSyncStatus('syncing');
         try {
             const response = await fetch(`${window.JSONBIN_CONFIG.baseUrl}/b/${window.JSONBIN_CONFIG.binId}/latest`, {
                 method: 'GET',
                 headers: {
                     'X-Master-Key': window.JSONBIN_CONFIG.apiKey,
-                    'X-Bin-Meta': 'false'
+                    'X-Bin-Meta': 'true'
                 }
             });
 
             if (response.ok) {
-                const data = await response.json();
-                this.notices = data.notices || [];
-                this.lastModified = response.headers.get('X-Bin-Version-Updated') || new Date().toISOString();
+                const result = await response.json();
+                this.notices = result.record?.notices || result.notices || [];
+                this.lastModified = result.metadata?.version_updated || response.headers.get('X-Bin-Version-Updated') || new Date().toISOString();
                 
                 if (this.notices.length === 0) {
                     this.notices = this.loadSampleNotices();
                     await this.saveToJSONBin();
+                } else {
+                    this.saveNoticesLocally(); // Save loaded data locally as backup
+                    this.showSyncStatus('synced');
                 }
             } else {
-                throw new Error(`HTTP ${response.status}`);
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
         } catch (error) {
             console.error('Error loading from JSONBin:', error);
             this.showNotification('Error connecting to server. Using offline mode.', 'error');
+            this.showSyncStatus('offline');
             this.loadNoticesLocally();
         }
         
@@ -614,11 +619,13 @@ class NoticeBoard {
                 this.saveNoticesLocally(); // Also save locally as backup
                 this.updateAvailableTags();
                 this.renderNotices();
+                this.showSyncStatus('synced');
             } else {
-                throw new Error(`HTTP ${response.status}`);
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
         } catch (error) {
             console.error('Error saving to JSONBin:', error);
+            this.showSyncStatus('error');
             throw error;
         }
     }
@@ -631,22 +638,29 @@ class NoticeBoard {
                 method: 'GET',
                 headers: {
                     'X-Master-Key': window.JSONBIN_CONFIG.apiKey,
-                    'X-Bin-Meta': 'false'
+                    'X-Bin-Meta': 'true'
                 }
             });
 
             if (response.ok) {
-                const lastModified = response.headers.get('X-Bin-Version-Updated');
-                if (lastModified !== this.lastModified) {
-                    const data = await response.json();
-                    this.notices = data.notices || [];
+                const result = await response.json();
+                const lastModified = result.metadata?.version_updated || response.headers.get('X-Bin-Version-Updated');
+                
+                if (lastModified && lastModified !== this.lastModified) {
+                    this.notices = result.record?.notices || result.notices || [];
                     this.lastModified = lastModified;
+                    this.saveNoticesLocally(); // Save updated data locally
                     this.updateAvailableTags();
                     this.renderNotices();
+                    this.showSyncStatus('updated');
                 }
+                this.showSyncStatus('synced');
+            } else {
+                this.showSyncStatus('error');
             }
         } catch (error) {
             console.error('Error checking for updates:', error);
+            this.showSyncStatus('offline');
         }
     }
 
@@ -655,10 +669,15 @@ class NoticeBoard {
             clearInterval(this.pollInterval);
         }
         
-        // Poll every 10 seconds for updates
+        // Poll every 5 seconds for updates (faster sync)
         this.pollInterval = setInterval(() => {
             this.checkForUpdates();
-        }, 10000);
+        }, 5000);
+        
+        // Also check for updates when window gains focus
+        window.addEventListener('focus', () => {
+            this.checkForUpdates();
+        });
     }
 
     loadNoticesLocally() {
@@ -976,6 +995,86 @@ class NoticeBoard {
             adminLoginBtn.style.display = 'flex';
             adminInfo.style.display = 'none';
             addNoticeBtn.style.display = 'none';
+        }
+    }
+    
+    showSyncStatus(status) {
+        // Remove existing sync status indicators
+        const existingStatus = document.querySelector('.sync-status');
+        if (existingStatus) {
+            existingStatus.remove();
+        }
+        
+        // Create sync status indicator
+        const statusElement = document.createElement('div');
+        statusElement.className = `sync-status ${status}`;
+        
+        let icon, text, color;
+        switch (status) {
+            case 'syncing':
+                icon = 'fas fa-sync-alt fa-spin';
+                text = 'Syncing...';
+                color = '#ffa726';
+                break;
+            case 'synced':
+                icon = 'fas fa-check-circle';
+                text = 'Synced';
+                color = '#66bb6a';
+                break;
+            case 'updated':
+                icon = 'fas fa-arrow-down';
+                text = 'Updated';
+                color = '#42a5f5';
+                break;
+            case 'offline':
+                icon = 'fas fa-wifi-slash';
+                text = 'Offline';
+                color = '#ef5350';
+                break;
+            case 'error':
+                icon = 'fas fa-exclamation-triangle';
+                text = 'Sync Error';
+                color = '#ff7043';
+                break;
+            default:
+                return;
+        }
+        
+        statusElement.innerHTML = `<i class="${icon}"></i> ${text}`;
+        
+        Object.assign(statusElement.style, {
+            position: 'fixed',
+            bottom: '20px',
+            left: '20px',
+            background: color,
+            color: 'white',
+            padding: '8px 12px',
+            borderRadius: '20px',
+            fontSize: '0.85rem',
+            fontWeight: '500',
+            zIndex: '9998',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+            transition: 'all 0.3s ease'
+        });
+        
+        document.body.appendChild(statusElement);
+        
+        // Auto-hide success status after 3 seconds
+        if (status === 'synced' || status === 'updated') {
+            setTimeout(() => {
+                if (statusElement.parentNode) {
+                    statusElement.style.opacity = '0';
+                    statusElement.style.transform = 'translateY(10px)';
+                    setTimeout(() => {
+                        if (statusElement.parentNode) {
+                            statusElement.parentNode.removeChild(statusElement);
+                        }
+                    }, 300);
+                }
+            }, 3000);
         }
     }
 }
