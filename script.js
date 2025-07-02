@@ -2,8 +2,6 @@ class NoticeBoard {
     constructor() {
         this.notices = [];
         this.currentFilter = 'all';
-        this.currentSort = 'date-desc';
-        this.viewMode = 'grid';
         this.editingNotice = null;
         this.selectedTags = [];
         this.availableTags = new Set();
@@ -34,19 +32,10 @@ class NoticeBoard {
         // Form submission
         document.getElementById('noticeForm').addEventListener('submit', (e) => this.handleFormSubmit(e));
 
-        // Search functionality
-        document.getElementById('searchInput').addEventListener('input', (e) => this.handleSearch(e.target.value));
-
         // Filter buttons
         document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.addEventListener('click', (e) => this.handleFilter(e.target.dataset.category));
         });
-
-        // Sort controls
-        document.getElementById('sortBy').addEventListener('change', (e) => this.handleSort(e.target.value));
-        
-        // View toggle
-        document.getElementById('viewToggle').addEventListener('click', () => this.toggleView());
         
         // Theme toggle
         document.getElementById('themeToggle').addEventListener('click', () => this.toggleTheme());
@@ -54,13 +43,6 @@ class NoticeBoard {
         // Tag input
         document.getElementById('tagInput').addEventListener('keypress', (e) => this.handleTagInput(e));
         
-        // Export/Import
-        document.querySelectorAll('.export-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => this.exportData(e.target.closest('.export-btn').dataset.format));
-        });
-        document.getElementById('importBtn').addEventListener('click', () => document.getElementById('importFile').click());
-        document.getElementById('importFile').addEventListener('change', (e) => this.importData(e));
-        document.getElementById('closeExportModal').addEventListener('click', () => this.closeExportModal());
 
         // Admin controls
         document.getElementById('adminLoginBtn').addEventListener('click', () => this.openAdminLogin());
@@ -258,24 +240,6 @@ class NoticeBoard {
         }
     }
 
-    handleSearch(query) {
-        this.searchQuery = query.toLowerCase();
-        this.renderNotices();
-    }
-    
-    handleSort(sortBy) {
-        this.currentSort = sortBy;
-        this.renderNotices();
-    }
-    
-    toggleView() {
-        this.viewMode = this.viewMode === 'grid' ? 'list' : 'grid';
-        document.getElementById('viewToggle').innerHTML = 
-            this.viewMode === 'grid' ? '<i class="fas fa-th"></i>' : '<i class="fas fa-list"></i>';
-        document.getElementById('noticesGrid').className = 
-            `notices-${this.viewMode}`;
-        this.renderNotices();
-    }
     
     toggleTheme() {
         this.darkMode = !this.darkMode;
@@ -334,38 +298,9 @@ class NoticeBoard {
             );
         }
 
-        // Apply search filter
-        if (this.searchQuery) {
-            filtered = filtered.filter(notice => {
-                const content = notice.content.replace(/<[^>]*>/g, '').toLowerCase();
-                const tags = (notice.tags || []).join(' ').toLowerCase();
-                return notice.title.toLowerCase().includes(this.searchQuery) ||
-                       content.includes(this.searchQuery) ||
-                       notice.author.toLowerCase().includes(this.searchQuery) ||
-                       tags.includes(this.searchQuery);
-            });
-        }
-
-        // Apply sorting
+        // Apply sorting (default to date-desc)
         filtered.sort((a, b) => {
-            switch (this.currentSort) {
-                case 'date-desc':
-                    return new Date(b.timestamp) - new Date(a.timestamp);
-                case 'date-asc':
-                    return new Date(a.timestamp) - new Date(b.timestamp);
-                case 'priority':
-                    const priorityOrder = { critical: 3, high: 2, normal: 1 };
-                    return priorityOrder[b.priority] - priorityOrder[a.priority];
-                case 'deadline':
-                    if (!a.deadline && !b.deadline) return 0;
-                    if (!a.deadline) return 1;
-                    if (!b.deadline) return -1;
-                    return new Date(a.deadline) - new Date(b.deadline);
-                case 'title':
-                    return a.title.localeCompare(b.title);
-                default:
-                    return 0;
-            }
+            return new Date(b.timestamp) - new Date(a.timestamp);
         });
 
         return filtered;
@@ -425,7 +360,12 @@ class NoticeBoard {
                 academic: 'fas fa-graduation-cap',
                 events: 'fas fa-calendar-alt',
                 exams: 'fas fa-file-alt',
-                urgent: 'fas fa-exclamation-triangle'
+                urgent: 'fas fa-exclamation-triangle',
+                scholarship: 'fas fa-award',
+                'fee-payments': 'fas fa-credit-card',
+                admission: 'fas fa-user-plus',
+                placement: 'fas fa-briefcase',
+                library: 'fas fa-book'
             };
             return icons[category] || 'fas fa-bell';
         };
@@ -824,118 +764,6 @@ class NoticeBoard {
     }
     
     
-    exportData(format) {
-        const data = this.notices;
-        const timestamp = new Date().toISOString().split('T')[0];
-        
-        switch (format) {
-            case 'json':
-                this.downloadFile(JSON.stringify(data, null, 2), `notices-${timestamp}.json`, 'application/json');
-                break;
-            case 'csv':
-                const csv = this.convertToCSV(data);
-                this.downloadFile(csv, `notices-${timestamp}.csv`, 'text/csv');
-                break;
-            case 'pdf':
-                this.exportToPDF(data);
-                break;
-        }
-        this.closeExportModal();
-    }
-    
-    convertToCSV(data) {
-        const headers = ['ID', 'Title', 'Content', 'Category', 'Priority', 'Date', 'Deadline', 'Author', 'Tags'];
-        const rows = data.map(notice => [
-            notice.id,
-            `"${notice.title.replace(/"/g, '""')}"`,
-            `"${notice.content.replace(/<[^>]*>/g, '').replace(/"/g, '""')}"`,
-            notice.category,
-            notice.priority,
-            notice.date,
-            notice.deadline || '',
-            `"${notice.author.replace(/"/g, '""')}"`,
-            `"${(notice.tags || []).join(', ')}"`
-        ]);
-        return [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
-    }
-    
-    downloadFile(content, filename, type) {
-        const blob = new Blob([content], { type });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        a.click();
-        URL.revokeObjectURL(url);
-    }
-    
-    exportToPDF(data) {
-        // Simple PDF export using print functionality
-        const printWindow = window.open('', '_blank');
-        const html = `
-            <html>
-                <head>
-                    <title>Notice Board Export</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; margin: 20px; }
-                        .notice { margin-bottom: 20px; padding: 15px; border: 1px solid #ccc; }
-                        .title { font-size: 18px; font-weight: bold; margin-bottom: 10px; }
-                        .meta { font-size: 12px; color: #666; margin-bottom: 10px; }
-                        .content { margin-bottom: 10px; }
-                        .tags { font-size: 11px; color: #999; }
-                    </style>
-                </head>
-                <body>
-                    <h1>College Notice Board</h1>
-                    <p>Exported on ${new Date().toLocaleDateString()}</p>
-                    ${data.map(notice => `
-                        <div class="notice">
-                            <div class="title">${notice.title}</div>
-                            <div class="meta">
-                                Category: ${notice.category} | Priority: ${notice.priority} | 
-                                Date: ${notice.date} | Author: ${notice.author}
-                            </div>
-                            <div class="content">${notice.content}</div>
-                            ${notice.tags ? `<div class="tags">Tags: ${notice.tags.join(', ')}</div>` : ''}
-                        </div>
-                    `).join('')}
-                </body>
-            </html>
-        `;
-        printWindow.document.write(html);
-        printWindow.document.close();
-        printWindow.print();
-    }
-    
-    importData(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            try {
-                const importedData = JSON.parse(event.target.result);
-                if (Array.isArray(importedData)) {
-                    this.notices = [...importedData, ...this.notices];
-                    this.saveNotices();
-                    this.updateAvailableTags();
-                    this.renderNotices();
-                    this.showNotification(`Imported ${importedData.length} notices successfully!`, 'success');
-                } else {
-                    throw new Error('Invalid file format');
-                }
-            } catch (error) {
-                this.showNotification('Error importing file. Please check the format.', 'error');
-            }
-        };
-        reader.readAsText(file);
-        e.target.value = '';
-    }
-    
-    closeExportModal() {
-        document.getElementById('exportModal').classList.remove('active');
-    }
-    
     initializeAdminState() {
         this.updateAdminUI();
     }
@@ -984,16 +812,16 @@ class NoticeBoard {
     
     updateAdminUI() {
         const adminLoginBtn = document.getElementById('adminLoginBtn');
-        const adminInfo = document.getElementById('adminInfo');
+        const adminLogoutBtn = document.getElementById('adminLogoutBtn');
         const addNoticeBtn = document.getElementById('addNoticeBtn');
         
         if (this.isAdmin) {
             adminLoginBtn.style.display = 'none';
-            adminInfo.style.display = 'flex';
+            adminLogoutBtn.style.display = 'flex';
             addNoticeBtn.style.display = 'flex';
         } else {
             adminLoginBtn.style.display = 'flex';
-            adminInfo.style.display = 'none';
+            adminLogoutBtn.style.display = 'none';
             addNoticeBtn.style.display = 'none';
         }
     }
