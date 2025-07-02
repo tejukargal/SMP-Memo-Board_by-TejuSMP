@@ -104,11 +104,46 @@ body.dark-mode .header {
     background-clip: text;
 }
 
-.logo h1 {
+/* Animated Title */
+.animated-title {
     font-size: 2rem;
     font-weight: 700;
     color: var(--text-primary);
     background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    white-space: nowrap;
+    overflow: hidden;
+    position: relative;
+}
+
+.animated-title::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--primary-color);
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+
+@keyframes gradient-shift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.animated-title {
+    background: linear-gradient(270deg, var(--primary-color), var(--secondary-color), var(--accent-color));
+    background-size: 200% 200%;
+    animation: gradient-shift 3s ease infinite;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -1196,6 +1231,120 @@ body.dark-mode .notice-card {
     }
 }
 
+/* Mobile-specific styles for new layout */
+.add-notice-section {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.bottom-search-filter {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border-color);
+    padding: 16px;
+    z-index: 100;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+}
+
+body.dark-mode .bottom-search-filter {
+    background: rgba(45, 55, 72, 0.95);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.main-content {
+    padding-bottom: 180px; /* Space for bottom search filter */
+}
+
+/* Mobile header adjustments */
+@media (max-width: 768px) {
+    .container {
+        padding: 16px;
+    }
+    
+    .header {
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .header-content {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .logo {
+        gap: 12px;
+        flex: 1;
+    }
+    
+    .logo i {
+        font-size: 1.8rem;
+    }
+    
+    .animated-title {
+        font-size: 1.5rem;
+        white-space: nowrap;
+        overflow: hidden;
+    }
+    
+    .header-actions {
+        gap: 8px;
+        flex-shrink: 0;
+    }
+    
+    .admin-login-btn {
+        padding: 10px;
+        min-width: auto;
+    }
+    
+    .admin-login-btn span {
+        display: none; /* Hide "Admin" text on mobile */
+    }
+    
+    .admin-info .admin-label span {
+        display: none; /* Hide "Admin Mode" text on mobile */
+    }
+    
+    .theme-toggle-btn {
+        padding: 10px;
+        min-width: 44px;
+        height: 44px;
+    }
+    
+    .add-notice-btn {
+        width: 100%;
+        max-width: 200px;
+        margin: 0 auto;
+    }
+    
+    .bottom-search-filter .search-filter {
+        margin: 0;
+    }
+    
+    .bottom-search-filter .search-controls {
+        margin-bottom: 12px;
+    }
+    
+    .bottom-search-filter .filter-buttons {
+        display: flex;
+        overflow-x: auto;
+        gap: 8px;
+        padding: 4px 0;
+    }
+    
+    .bottom-search-filter .filter-btn {
+        white-space: nowrap;
+        flex-shrink: 0;
+        padding: 8px 16px;
+        font-size: 0.9rem;
+    }
+}
+
 @media (max-width: 480px) {
     .notice-card {
         padding: 20px;
@@ -1211,25 +1360,28 @@ body.dark-mode .notice-card {
         align-self: flex-end;
     }
     
-    .header-actions {
-        flex-direction: column;
-        gap: 12px;
-        width: 100%;
+    .animated-title {
+        font-size: 1.3rem;
     }
     
-    .admin-section {
-        width: 100%;
-        justify-content: center;
+    .logo i {
+        font-size: 1.5rem;
     }
     
-    .admin-login-btn,
+    .header {
+        padding: 16px;
+    }
+    
     .add-notice-btn {
-        width: 100%;
-        justify-content: center;
+        padding: 12px 20px;
+        font-size: 0.95rem;
     }
     
-    .admin-info {
-        width: 100%;
-        justify-content: center;
+    .bottom-search-filter {
+        padding: 12px;
+    }
+    
+    .main-content {
+        padding-bottom: 200px; /* More space on very small screens */
     }
 }
