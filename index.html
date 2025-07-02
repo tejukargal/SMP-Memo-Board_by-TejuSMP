@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>College Notice Board</title>
+    <title>SMP Memo Board</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -15,18 +15,16 @@
             <div class="header-content">
                 <div class="logo">
                     <i class="fas fa-graduation-cap"></i>
-                    <h1>College Notice Board</h1>
+                    <h1 class="animated-title">SMP Memo Board</h1>
                 </div>
                 <div class="header-actions">
                     <div class="admin-section" id="adminSection">
                         <button class="admin-login-btn" id="adminLoginBtn" title="Admin Login">
                             <i class="fas fa-user-shield"></i>
-                            Admin
                         </button>
                         <div class="admin-info" id="adminInfo" style="display: none;">
                             <span class="admin-label">
                                 <i class="fas fa-crown"></i>
-                                Admin Mode
                             </span>
                             <button class="admin-logout-btn" id="adminLogoutBtn" title="Logout">
                                 <i class="fas fa-sign-out-alt"></i>
@@ -36,15 +34,30 @@
                     <button class="theme-toggle-btn" id="themeToggle" title="Toggle Dark Mode">
                         <i class="fas fa-moon"></i>
                     </button>
-                    <button class="add-notice-btn" id="addNoticeBtn">
-                        <i class="fas fa-plus"></i>
-                        Add Notice
-                    </button>
                 </div>
+            </div>
+            <div class="add-notice-section">
+                <button class="add-notice-btn" id="addNoticeBtn">
+                    <i class="fas fa-plus"></i>
+                    Add Notice
+                </button>
             </div>
         </header>
 
         <main class="main-content">
+            <div class="notices-grid" id="noticesGrid">
+                <!-- Notices will be dynamically generated here -->
+            </div>
+
+            <div class="empty-state" id="emptyState" style="display: none;">
+                <i class="fas fa-clipboard-list"></i>
+                <h3>No notices found</h3>
+                <p>Be the first to add a notice to the board!</p>
+            </div>
+        </main>
+        
+        <!-- Bottom Search/Filter Section -->
+        <div class="bottom-search-filter">
             <div class="search-filter">
                 <div class="search-controls">
                     <div class="search-box">
@@ -75,17 +88,7 @@
                     <div class="active-tags" id="activeTags"></div>
                 </div>
             </div>
-
-            <div class="notices-grid" id="noticesGrid">
-                <!-- Notices will be dynamically generated here -->
-            </div>
-
-            <div class="empty-state" id="emptyState" style="display: none;">
-                <i class="fas fa-clipboard-list"></i>
-                <h3>No notices found</h3>
-                <p>Be the first to add a notice to the board!</p>
-            </div>
-        </main>
+        </div>
     </div>
 
     <!-- Add Notice Modal -->
