@@ -2001,3 +2001,168 @@ body.dark-mode .notice-url:hover {
         width: 100%;
     }
 }
+
+/* About Modal Styles */
+.about-modal {
+    max-width: 600px;
+    width: 90vw;
+}
+
+.about-content {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.app-info {
+    text-align: center;
+    padding: 20px;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    border-radius: var(--radius-lg);
+    color: white;
+    margin-bottom: 8px;
+}
+
+.app-icon {
+    font-size: 3rem;
+    margin-bottom: 12px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.app-info h3 {
+    margin: 0 0 8px 0;
+    font-size: 1.8rem;
+    font-weight: 700;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.version {
+    margin: 0 0 12px 0;
+    font-size: 0.9rem;
+    opacity: 0.9;
+    font-weight: 500;
+}
+
+.description {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    opacity: 0.95;
+}
+
+.developer-info,
+.features-info {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+}
+
+.developer-info h4,
+.features-info h4 {
+    margin: 0 0 16px 0;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.developer-info h4 i {
+    color: var(--primary-color);
+}
+
+.features-info h4 i {
+    color: var(--warning-color);
+}
+
+.developer-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.developer-details h5 {
+    margin: 0 0 4px 0;
+    color: var(--text-primary);
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.role {
+    margin: 0 0 8px 0;
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.contact-info {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.contact-info i {
+    color: var(--primary-color);
+}
+
+.features-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+.features-list li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.features-list li i {
+    color: var(--success-color);
+    width: 16px;
+    text-align: center;
+}
+
+/* About Modal Responsive */
+@media (max-width: 768px) {
+    .about-modal {
+        width: 95vw;
+        margin: 10px;
+    }
+    
+    .app-info {
+        padding: 16px;
+    }
+    
+    .app-icon {
+        font-size: 2.5rem;
+    }
+    
+    .app-info h3 {
+        font-size: 1.5rem;
+    }
+    
+    .developer-info,
+    .features-info {
+        padding: 16px;
+    }
+    
+    .features-list {
+        gap: 8px;
+    }
+    
+    .features-list li {
+        font-size: 0.85rem;
+    }
+}

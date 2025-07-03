@@ -57,6 +57,16 @@ class NoticeBoard {
         document.getElementById('cancelAdminLogin').addEventListener('click', () => this.closeAdminLogin());
         document.getElementById('adminLoginForm').addEventListener('submit', (e) => this.handleAdminLogin(e));
 
+        // About modal controls
+        document.querySelector('.animated-title').addEventListener('dblclick', () => this.openAboutModal());
+        document.getElementById('closeAboutModal').addEventListener('click', () => this.closeAboutModal());
+        document.getElementById('closeAboutBtn').addEventListener('click', () => this.closeAboutModal());
+        document.getElementById('aboutModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('aboutModal')) {
+                this.closeAboutModal();
+            }
+        });
+
         // Set default date to today
         document.getElementById('noticeDate').valueAsDate = new Date();
     }
@@ -1146,6 +1156,16 @@ class NoticeBoard {
         document.body.style.overflow = 'auto';
         document.getElementById('adminLoginForm').reset();
         document.getElementById('loginError').style.display = 'none';
+    }
+    
+    openAboutModal() {
+        document.getElementById('aboutModal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+    
+    closeAboutModal() {
+        document.getElementById('aboutModal').classList.remove('active');
+        document.body.style.overflow = 'auto';
     }
     
     handleAdminLogin(e) {
