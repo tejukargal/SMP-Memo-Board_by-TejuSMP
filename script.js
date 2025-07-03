@@ -516,6 +516,9 @@ class NoticeBoard {
         const emptyState = document.getElementById('emptyState');
         const filteredNotices = this.getFilteredNotices();
 
+        // Render dynamic category filters
+        this.renderCategoryFilters();
+
         if (filteredNotices.length === 0) {
             noticesGrid.style.display = 'none';
             emptyState.style.display = 'block';
@@ -567,6 +570,46 @@ class NoticeBoard {
         });
     }
 
+    renderCategoryFilters() {
+        const filterButtons = document.querySelector('.filter-buttons');
+        
+        // Get categories that have notices
+        const categoriesWithNotices = new Set();
+        this.notices.forEach(notice => {
+            categoriesWithNotices.add(notice.category);
+        });
+
+        // Define category labels
+        const categoryLabels = {
+            academic: 'Academic',
+            events: 'Events',
+            exams: 'Exams',
+            urgent: 'Urgent',
+            scholarship: 'Scholarship',
+            'fee-payments': 'Fee Payments',
+            admission: 'Admission',
+            placement: 'Placement',
+            library: 'Library'
+        };
+
+        // Build filter buttons HTML
+        let buttonsHTML = '<button class="filter-btn active" data-category="all">All</button>';
+        
+        Object.keys(categoryLabels).forEach(category => {
+            if (categoriesWithNotices.has(category)) {
+                const isActive = this.currentFilter === category ? 'active' : '';
+                buttonsHTML += `<button class="filter-btn ${isActive}" data-category="${category}">${categoryLabels[category]}</button>`;
+            }
+        });
+
+        filterButtons.innerHTML = buttonsHTML;
+
+        // Re-attach event listeners for filter buttons
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => this.handleFilter(e.target.dataset.category));
+        });
+    }
+
     createNoticeCard(notice) {
         const formatDate = (dateString) => {
             const date = new Date(dateString);
@@ -614,7 +657,7 @@ class NoticeBoard {
                     </div>
                 </div>
                 <div class="notice-content">
-                    ${notice.content}
+                    ${this.processContentURLs(notice.content)}
                 </div>
                 ${notice.deadline ? `<div class="deadline-info">
                     <i class="fas fa-clock"></i>
@@ -683,6 +726,80 @@ class NoticeBoard {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    }
+
+    processContentURLs(content) {
+        // URL regex pattern
+        const urlRegex = /(https?:\/\/[^\s<>"]+)/gi;
+        
+        return content.replace(urlRegex, (url) => {
+            const domain = this.extractDomain(url);
+            const siteName = this.getSiteName(domain);
+            
+            return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="notice-url">
+                <span class="url-label">${siteName}</span>
+                <span class="url-domain">${domain}</span>
+            </a>`;
+        });
+    }
+
+    extractDomain(url) {
+        try {
+            const urlObj = new URL(url);
+            return urlObj.hostname.replace('www.', '');
+        } catch (e) {
+            return url;
+        }
+    }
+
+    getSiteName(domain) {
+        // Common website mappings
+        const siteNames = {
+            'youtube.com': 'YouTube',
+            'youtu.be': 'YouTube',
+            'google.com': 'Google',
+            'github.com': 'GitHub',
+            'stackoverflow.com': 'Stack Overflow',
+            'linkedin.com': 'LinkedIn',
+            'twitter.com': 'Twitter',
+            'x.com': 'X (Twitter)',
+            'facebook.com': 'Facebook',
+            'instagram.com': 'Instagram',
+            'whatsapp.com': 'WhatsApp',
+            'telegram.org': 'Telegram',
+            'drive.google.com': 'Google Drive',
+            'docs.google.com': 'Google Docs',
+            'sheets.google.com': 'Google Sheets',
+            'forms.google.com': 'Google Forms',
+            'meet.google.com': 'Google Meet',
+            'zoom.us': 'Zoom',
+            'microsoft.com': 'Microsoft',
+            'office.com': 'Microsoft Office',
+            'dropbox.com': 'Dropbox',
+            'wikipedia.org': 'Wikipedia',
+            'amazon.com': 'Amazon',
+            'amazon.in': 'Amazon India',
+            'flipkart.com': 'Flipkart',
+            'paytm.com': 'Paytm',
+            'edu.in': 'Educational Site',
+            'gov.in': 'Government Site'
+        };
+
+        // Check exact matches first
+        if (siteNames[domain.toLowerCase()]) {
+            return siteNames[domain.toLowerCase()];
+        }
+
+        // Check for partial matches
+        for (const [key, name] of Object.entries(siteNames)) {
+            if (domain.toLowerCase().includes(key.toLowerCase())) {
+                return name;
+            }
+        }
+
+        // Default: capitalize first letter of domain
+        const name = domain.split('.')[0];
+        return name.charAt(0).toUpperCase() + name.slice(1);
     }
 
     showNotification(message, type = 'info') {
