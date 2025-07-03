@@ -85,8 +85,11 @@ class NoticeBoard {
             this.currentAttachments = [...(notice.attachments || [])];
             this.renderTags();
             this.updateAttachmentsPreview();
+            this.updateDisplayOrderOptions();
+            document.getElementById('noticeOrder').value = notice.displayOrder || this.getNextDisplayOrder();
             document.getElementById('submitBtn').textContent = 'Update Notice';
         } else {
+            this.updateDisplayOrderOptions();
             document.getElementById('submitBtn').textContent = 'Add Notice';
         }
     }
@@ -156,6 +159,7 @@ class NoticeBoard {
             author: document.getElementById('noticeAuthor').value.trim() || 'Administration',
             tags: [...this.currentTags],
             attachments: [...this.currentAttachments],
+            displayOrder: document.getElementById('noticeOrder').value || this.getNextDisplayOrder(),
             timestamp: this.editingNotice ? this.editingNotice.timestamp : new Date().toISOString(),
             lastModified: new Date().toISOString()
         };
@@ -503,8 +507,17 @@ class NoticeBoard {
             );
         }
 
-        // Apply sorting (default to date-desc)
+        // Apply sorting (display order first, then by date)
         filtered.sort((a, b) => {
+            // First, sort by display order (01, 02, 03, then others)
+            const orderA = a.displayOrder || '99';
+            const orderB = b.displayOrder || '99';
+            
+            if (orderA !== orderB) {
+                return orderA.localeCompare(orderB);
+            }
+            
+            // If display order is the same, sort by timestamp (newest first)
             return new Date(b.timestamp) - new Date(a.timestamp);
         });
 
@@ -747,6 +760,56 @@ class NoticeBoard {
                 ${url}
             </a>`;
         });
+    }
+
+    getNextDisplayOrder() {
+        // Get all existing display orders
+        const existingOrders = this.notices.map(notice => notice.displayOrder || '99').sort();
+        
+        // Find the next available order (01, 02, 03, then incrementing)
+        for (let i = 1; i <= 99; i++) {
+            const order = i.toString().padStart(2, '0');
+            if (!existingOrders.includes(order)) {
+                return order;
+            }
+        }
+        
+        // If all orders are taken, return 99
+        return '99';
+    }
+
+    updateDisplayOrderOptions() {
+        const orderSelect = document.getElementById('noticeOrder');
+        const usedOrders = this.notices
+            .filter(notice => notice.id !== (this.editingNotice ? this.editingNotice.id : null))
+            .map(notice => notice.displayOrder || '99');
+        
+        // Reset options
+        orderSelect.innerHTML = '';
+        
+        // Add available options
+        for (let i = 1; i <= 3; i++) {
+            const order = i.toString().padStart(2, '0');
+            const isUsed = usedOrders.includes(order);
+            const option = document.createElement('option');
+            option.value = order;
+            option.textContent = `${order} - ${this.getOrderLabel(i)}${isUsed ? ' (Used)' : ''}`;
+            option.disabled = isUsed;
+            orderSelect.appendChild(option);
+        }
+        
+        // Set default to next available order if creating new notice
+        if (!this.editingNotice) {
+            const nextOrder = this.getNextDisplayOrder();
+            if (['01', '02', '03'].includes(nextOrder)) {
+                orderSelect.value = nextOrder;
+            }
+        }
+    }
+
+    getOrderLabel(num) {
+        const labels = ['First', 'Second', 'Third'];
+        return labels[num - 1] || `${num}th`;
     }
 
     showNotification(message, type = 'info') {

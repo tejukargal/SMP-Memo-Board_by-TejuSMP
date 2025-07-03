@@ -106,7 +106,7 @@
                     <div id="noticeContentEditor" class="editor-container"></div>
                     <textarea id="noticeContent" style="display: none;"></textarea>
                 </div>
-                <div class="form-row">
+                <div class="form-row-three">
                     <div class="form-group">
                         <label for="noticeCategory">Category *</label>
                         <select id="noticeCategory" required>
@@ -129,6 +129,15 @@
                             <option value="high">High</option>
                             <option value="critical">Critical</option>
                         </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="noticeOrder">Display Order</label>
+                        <select id="noticeOrder">
+                            <option value="01">01 - First</option>
+                            <option value="02">02 - Second</option>
+                            <option value="03">03 - Third</option>
+                        </select>
+                        <small class="form-help">Lower numbers appear first</small>
                     </div>
                 </div>
                 <div class="form-row">
