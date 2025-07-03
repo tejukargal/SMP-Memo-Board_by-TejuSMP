@@ -207,8 +207,85 @@ body.dark-mode .header {
     }
 }
 
+/* Sub Header Styles */
+.sub-header {
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 16px 24px;
+    margin-bottom: 24px;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+    backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
+}
 
+.sub-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.03) 50%, transparent 70%);
+    pointer-events: none;
+}
 
+.sub-header-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.institution-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.institution-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.institution-name-kannada {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin: 0;
+    font-family: 'Noto Sans Kannada', 'Noto Sans', sans-serif;
+}
+
+.purpose-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-color);
+}
+
+.purpose-text {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin: 0;
+    letter-spacing: 0.3px;
+}
+
+.purpose-text-kannada {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin: 0;
+    font-family: 'Noto Sans Kannada', 'Noto Sans', sans-serif;
+}
 
 .header-actions {
     display: flex;
@@ -1153,6 +1230,28 @@ body.dark-mode .notice-card {
     .header {
         padding: 24px;
         margin-bottom: 24px;
+    }
+    
+    .sub-header {
+        padding: 12px 16px;
+        margin-bottom: 20px;
+    }
+    
+    .institution-name {
+        font-size: 1rem;
+        letter-spacing: 0.3px;
+    }
+    
+    .institution-name-kannada {
+        font-size: 0.88rem;
+    }
+    
+    .purpose-text {
+        font-size: 0.8rem;
+    }
+    
+    .purpose-text-kannada {
+        font-size: 0.75rem;
     }
     
     .header-content {
