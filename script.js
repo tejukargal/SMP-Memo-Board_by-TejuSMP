@@ -169,7 +169,7 @@ class NoticeBoard {
             author: document.getElementById('noticeAuthor').value.trim() || 'Administration',
             tags: [...this.currentTags],
             attachments: [...this.currentAttachments],
-            displayOrder: document.getElementById('noticeOrder').value || this.getNextDisplayOrder(),
+            displayOrder: this.handleDisplayOrderAssignment(document.getElementById('noticeOrder').value || this.getNextDisplayOrder()),
             timestamp: this.editingNotice ? this.editingNotice.timestamp : new Date().toISOString(),
             lastModified: new Date().toISOString()
         };
@@ -797,29 +797,48 @@ class NoticeBoard {
         // Reset options
         orderSelect.innerHTML = '';
         
-        // Add available options
-        for (let i = 1; i <= 3; i++) {
+        // Add available options (1-20 should be enough for most use cases)
+        for (let i = 1; i <= 20; i++) {
             const order = i.toString().padStart(2, '0');
             const isUsed = usedOrders.includes(order);
             const option = document.createElement('option');
             option.value = order;
-            option.textContent = `${order} - ${this.getOrderLabel(i)}${isUsed ? ' (Used)' : ''}`;
-            option.disabled = isUsed;
+            option.textContent = `${order} - ${this.getOrderLabel(i)}${isUsed ? ' (Currently Used)' : ''}`;
             orderSelect.appendChild(option);
         }
         
         // Set default to next available order if creating new notice
         if (!this.editingNotice) {
             const nextOrder = this.getNextDisplayOrder();
-            if (['01', '02', '03'].includes(nextOrder)) {
-                orderSelect.value = nextOrder;
-            }
+            orderSelect.value = nextOrder;
         }
     }
 
     getOrderLabel(num) {
-        const labels = ['First', 'Second', 'Third'];
-        return labels[num - 1] || `${num}th`;
+        const labels = {
+            1: 'First', 2: 'Second', 3: 'Third', 4: 'Fourth', 5: 'Fifth',
+            6: 'Sixth', 7: 'Seventh', 8: 'Eighth', 9: 'Ninth', 10: 'Tenth',
+            11: 'Eleventh', 12: 'Twelfth', 13: 'Thirteenth', 14: 'Fourteenth', 15: 'Fifteenth',
+            16: 'Sixteenth', 17: 'Seventeenth', 18: 'Eighteenth', 19: 'Nineteenth', 20: 'Twentieth'
+        };
+        return labels[num] || `${num}th`;
+    }
+
+    handleDisplayOrderAssignment(requestedOrder) {
+        // If editing existing notice, check if the order is taken by others
+        const currentNoticeId = this.editingNotice ? this.editingNotice.id : null;
+        const existingNoticeWithOrder = this.notices.find(notice => 
+            notice.displayOrder === requestedOrder && notice.id !== currentNoticeId
+        );
+
+        if (existingNoticeWithOrder) {
+            // If order is taken, push the existing notice to the next available order
+            const nextOrder = this.getNextDisplayOrder();
+            existingNoticeWithOrder.displayOrder = nextOrder;
+            this.showNotification(`Notice "${existingNoticeWithOrder.title}" moved to position ${nextOrder}`, 'info');
+        }
+
+        return requestedOrder;
     }
 
     showNotification(message, type = 'info') {
