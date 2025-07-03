@@ -732,74 +732,21 @@ class NoticeBoard {
         // URL regex pattern
         const urlRegex = /(https?:\/\/[^\s<>"]+)/gi;
         
+        let urlIndex = 0;
+        const urlColors = [
+            '#667eea', '#764ba2', '#f093fb', '#4facfe', '#43e97b',
+            '#fa709a', '#ffecd2', '#a8edea', '#fed6e3', '#fdbb2d',
+            '#ee9ca7', '#ffdde1', '#89f7fe', '#66a6ff', '#f78ca0'
+        ];
+        
         return content.replace(urlRegex, (url) => {
-            const domain = this.extractDomain(url);
-            const siteName = this.getSiteName(domain);
+            const color = urlColors[urlIndex % urlColors.length];
+            urlIndex++;
             
-            return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="notice-url">
-                <span class="url-label">${siteName}</span>
-                <span class="url-domain">${domain}</span>
+            return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="notice-url" style="background-color: ${color};">
+                ${url}
             </a>`;
         });
-    }
-
-    extractDomain(url) {
-        try {
-            const urlObj = new URL(url);
-            return urlObj.hostname.replace('www.', '');
-        } catch (e) {
-            return url;
-        }
-    }
-
-    getSiteName(domain) {
-        // Common website mappings
-        const siteNames = {
-            'youtube.com': 'YouTube',
-            'youtu.be': 'YouTube',
-            'google.com': 'Google',
-            'github.com': 'GitHub',
-            'stackoverflow.com': 'Stack Overflow',
-            'linkedin.com': 'LinkedIn',
-            'twitter.com': 'Twitter',
-            'x.com': 'X (Twitter)',
-            'facebook.com': 'Facebook',
-            'instagram.com': 'Instagram',
-            'whatsapp.com': 'WhatsApp',
-            'telegram.org': 'Telegram',
-            'drive.google.com': 'Google Drive',
-            'docs.google.com': 'Google Docs',
-            'sheets.google.com': 'Google Sheets',
-            'forms.google.com': 'Google Forms',
-            'meet.google.com': 'Google Meet',
-            'zoom.us': 'Zoom',
-            'microsoft.com': 'Microsoft',
-            'office.com': 'Microsoft Office',
-            'dropbox.com': 'Dropbox',
-            'wikipedia.org': 'Wikipedia',
-            'amazon.com': 'Amazon',
-            'amazon.in': 'Amazon India',
-            'flipkart.com': 'Flipkart',
-            'paytm.com': 'Paytm',
-            'edu.in': 'Educational Site',
-            'gov.in': 'Government Site'
-        };
-
-        // Check exact matches first
-        if (siteNames[domain.toLowerCase()]) {
-            return siteNames[domain.toLowerCase()];
-        }
-
-        // Check for partial matches
-        for (const [key, name] of Object.entries(siteNames)) {
-            if (domain.toLowerCase().includes(key.toLowerCase())) {
-                return name;
-            }
-        }
-
-        // Default: capitalize first letter of domain
-        const name = domain.split('.')[0];
-        return name.charAt(0).toUpperCase() + name.slice(1);
     }
 
     showNotification(message, type = 'info') {
