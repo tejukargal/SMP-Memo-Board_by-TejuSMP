@@ -6,6 +6,9 @@ class NoticeBoard {
         this.selectedTags = [];
         this.availableTags = new Set();
         this.currentTags = [];
+        this.currentAttachments = [];
+        this.maxFileSize = 5 * 1024 * 1024; // 5MB
+        this.allowedFileTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'application/pdf', 'text/csv', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'];
         this.darkMode = localStorage.getItem('darkMode') === 'true';
         this.isAdmin = sessionStorage.getItem('isAdmin') === 'true';
         this.adminCode = 'teju_smp';
@@ -43,6 +46,9 @@ class NoticeBoard {
         // Tag input
         document.getElementById('tagInput').addEventListener('keypress', (e) => this.handleTagInput(e));
         
+        // File attachment handling
+        document.getElementById('noticeAttachments').addEventListener('change', (e) => this.handleFileSelection(e));
+        this.setupFileDragDrop();
 
         // Admin controls
         document.getElementById('adminLoginBtn').addEventListener('click', () => this.openAdminLogin());
@@ -76,7 +82,9 @@ class NoticeBoard {
             document.getElementById('noticeDeadline').value = notice.deadline || '';
             document.getElementById('noticeAuthor').value = notice.author;
             this.currentTags = [...(notice.tags || [])];
+            this.currentAttachments = [...(notice.attachments || [])];
             this.renderTags();
+            this.updateAttachmentsPreview();
             document.getElementById('submitBtn').textContent = 'Update Notice';
         } else {
             document.getElementById('submitBtn').textContent = 'Add Notice';
@@ -90,7 +98,9 @@ class NoticeBoard {
         document.getElementById('noticeDate').valueAsDate = new Date();
         this.quill.setContents([]);
         this.currentTags = [];
+        this.currentAttachments = [];
         this.renderTags();
+        this.updateAttachmentsPreview();
         this.editingNotice = null;
     }
 
@@ -145,6 +155,7 @@ class NoticeBoard {
             deadline: document.getElementById('noticeDeadline').value || null,
             author: document.getElementById('noticeAuthor').value.trim() || 'Administration',
             tags: [...this.currentTags],
+            attachments: [...this.currentAttachments],
             timestamp: this.editingNotice ? this.editingNotice.timestamp : new Date().toISOString(),
             lastModified: new Date().toISOString()
         };
@@ -271,6 +282,200 @@ class NoticeBoard {
         });
     }
 
+    setupFileDragDrop() {
+        const fileInputContainer = document.querySelector('.file-input-container');
+        const fileInput = document.getElementById('noticeAttachments');
+        
+        fileInputContainer.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileInputContainer.classList.add('drag-over');
+        });
+        
+        fileInputContainer.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            if (!fileInputContainer.contains(e.relatedTarget)) {
+                fileInputContainer.classList.remove('drag-over');
+            }
+        });
+        
+        fileInputContainer.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileInputContainer.classList.remove('drag-over');
+            const files = e.dataTransfer.files;
+            this.handleFiles(files);
+        });
+        
+        fileInputContainer.addEventListener('click', () => {
+            fileInput.click();
+        });
+    }
+
+    handleFileSelection(e) {
+        const files = e.target.files;
+        this.handleFiles(files);
+    }
+
+    async handleFiles(files) {
+        const validFiles = [];
+        
+        for (let file of files) {
+            if (this.validateFile(file)) {
+                try {
+                    const fileData = await this.readFileAsBase64(file);
+                    validFiles.push({
+                        name: file.name,
+                        type: file.type,
+                        size: file.size,
+                        data: fileData,
+                        id: Date.now() + Math.random()
+                    });
+                } catch (error) {
+                    console.error('Error reading file:', error);
+                    this.showNotification(`Error reading file: ${file.name}`, 'error');
+                }
+            }
+        }
+        
+        this.currentAttachments = [...this.currentAttachments, ...validFiles];
+        this.updateAttachmentsPreview();
+    }
+
+    validateFile(file) {
+        if (!this.allowedFileTypes.includes(file.type)) {
+            this.showNotification(`File type not allowed: ${file.name}`, 'error');
+            return false;
+        }
+        
+        if (file.size > this.maxFileSize) {
+            this.showNotification(`File too large: ${file.name} (Max 5MB)`, 'error');
+            return false;
+        }
+        
+        return true;
+    }
+
+    readFileAsBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    }
+
+    updateAttachmentsPreview() {
+        const preview = document.getElementById('attachmentsPreview');
+        preview.innerHTML = '';
+        
+        this.currentAttachments.forEach((attachment, index) => {
+            const attachmentEl = document.createElement('div');
+            attachmentEl.className = 'attachment-item';
+            
+            const fileIcon = this.getFileIcon(attachment.type);
+            const fileSize = this.formatFileSize(attachment.size);
+            
+            attachmentEl.innerHTML = `
+                <div class="attachment-info">
+                    <i class="${fileIcon}"></i>
+                    <div class="attachment-details">
+                        <span class="attachment-name">${attachment.name}</span>
+                        <span class="attachment-size">${fileSize}</span>
+                    </div>
+                </div>
+                <button type="button" class="remove-attachment" data-index="${index}">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            
+            attachmentEl.querySelector('.remove-attachment').addEventListener('click', () => {
+                this.removeAttachment(index);
+            });
+            
+            preview.appendChild(attachmentEl);
+        });
+    }
+
+    getFileIcon(fileType) {
+        if (fileType.startsWith('image/')) return 'fas fa-image';
+        if (fileType === 'application/pdf') return 'fas fa-file-pdf';
+        if (fileType.includes('csv') || fileType.includes('excel') || fileType.includes('spreadsheet')) return 'fas fa-file-excel';
+        if (fileType.includes('word') || fileType.includes('document')) return 'fas fa-file-word';
+        return 'fas fa-file';
+    }
+
+    formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    removeAttachment(index) {
+        this.currentAttachments.splice(index, 1);
+        this.updateAttachmentsPreview();
+    }
+
+    downloadAttachment(attachment) {
+        const link = document.createElement('a');
+        link.href = attachment.data;
+        link.download = attachment.name;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        this.showNotification(`Downloading ${attachment.name}`, 'success');
+    }
+
+    previewAttachment(attachment) {
+        if (!attachment.type.startsWith('image/')) {
+            this.showNotification('Preview only available for images', 'error');
+            return;
+        }
+
+        // Create preview modal
+        const previewModal = document.createElement('div');
+        previewModal.className = 'preview-modal-overlay';
+        previewModal.innerHTML = `
+            <div class="preview-modal">
+                <div class="preview-header">
+                    <h3>${this.escapeHtml(attachment.name)}</h3>
+                    <button class="close-preview-btn">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="preview-content">
+                    <img src="${attachment.data}" alt="${this.escapeHtml(attachment.name)}" class="preview-image">
+                </div>
+                <div class="preview-footer">
+                    <button class="download-preview-btn">
+                        <i class="fas fa-download"></i>
+                        Download
+                    </button>
+                </div>
+            </div>
+        `;
+
+        // Add event listeners
+        previewModal.querySelector('.close-preview-btn').addEventListener('click', () => {
+            document.body.removeChild(previewModal);
+            document.body.style.overflow = 'auto';
+        });
+
+        previewModal.querySelector('.download-preview-btn').addEventListener('click', () => {
+            this.downloadAttachment(attachment);
+        });
+
+        previewModal.addEventListener('click', (e) => {
+            if (e.target === previewModal) {
+                document.body.removeChild(previewModal);
+                document.body.style.overflow = 'auto';
+            }
+        });
+
+        document.body.appendChild(previewModal);
+        document.body.style.overflow = 'hidden';
+    }
+
     handleFilter(category) {
         this.currentFilter = category;
         
@@ -343,6 +548,23 @@ class NoticeBoard {
                 this.toggleTagFilter(tag.textContent.trim());
             });
         });
+
+        // Add event listeners for attachment actions
+        document.querySelectorAll('.download-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const attachmentData = JSON.parse(btn.closest('.attachment-item-display').dataset.attachment);
+                this.downloadAttachment(attachmentData);
+            });
+        });
+
+        document.querySelectorAll('.preview-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const attachmentData = JSON.parse(btn.closest('.attachment-item-display').dataset.attachment);
+                this.previewAttachment(attachmentData);
+            });
+        });
     }
 
     createNoticeCard(notice) {
@@ -400,6 +622,32 @@ class NoticeBoard {
                 </div>` : ''}
                 ${notice.tags && notice.tags.length > 0 ? `<div class="notice-tags">
                     ${notice.tags.map(tag => `<span class="notice-tag">${this.escapeHtml(tag)}</span>`).join('')}
+                </div>` : ''}
+                ${notice.attachments && notice.attachments.length > 0 ? `<div class="notice-attachments">
+                    <h4><i class="fas fa-paperclip"></i> Attachments (${notice.attachments.length})</h4>
+                    <div class="attachments-list">
+                        ${notice.attachments.map(attachment => `
+                            <div class="attachment-item-display" data-attachment='${JSON.stringify(attachment)}'>
+                                <div class="attachment-info">
+                                    <i class="${this.getFileIcon(attachment.type)}"></i>
+                                    <div class="attachment-details">
+                                        <span class="attachment-name">${this.escapeHtml(attachment.name)}</span>
+                                        <span class="attachment-size">${this.formatFileSize(attachment.size)}</span>
+                                    </div>
+                                </div>
+                                <div class="attachment-actions">
+                                    ${attachment.type.startsWith('image/') ? `
+                                        <button class="preview-btn" title="Preview Image">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    ` : ''}
+                                    <button class="download-btn" title="Download">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
                 </div>` : ''}
                 <div class="notice-footer">
                     <div class="notice-info">
