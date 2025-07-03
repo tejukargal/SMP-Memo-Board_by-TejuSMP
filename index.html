@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMP Memo Board</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.quilljs.com/1.3.6/quill.snow.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-graduation-cap"></i>
+                    <h1 class="animated-title">SMP Memo Board</h1>
+                </div>
+            </div>
+            <div class="add-notice-section">
+                <button class="add-notice-btn" id="addNoticeBtn">
+                    <i class="fas fa-plus"></i>
+                    Add Notice
+                </button>
+            </div>
+        </header>
+
+        <!-- Top Category Filter Section (Sticky) -->
+        <div class="top-category-filter">
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-category="all">All</button>
+                <button class="filter-btn" data-category="academic">Academic</button>
+                <button class="filter-btn" data-category="events">Events</button>
+                <button class="filter-btn" data-category="exams">Exams</button>
+                <button class="filter-btn" data-category="urgent">Urgent</button>
+                <button class="filter-btn" data-category="scholarship">Scholarship</button>
+                <button class="filter-btn" data-category="fee-payments">Fee Payments</button>
+                <button class="filter-btn" data-category="admission">Admission</button>
+                <button class="filter-btn" data-category="placement">Placement</button>
+                <button class="filter-btn" data-category="library">Library</button>
+            </div>
+        </div>
+
+        <main class="main-content">
+            <div class="notices-grid" id="noticesGrid">
+                <!-- Notices will be dynamically generated here -->
+            </div>
+
+            <div class="empty-state" id="emptyState" style="display: none;">
+                <i class="fas fa-clipboard-list"></i>
+                <h3>No notices found</h3>
+                <p>Be the first to add a notice to the board!</p>
+            </div>
+        </main>
+        
+        <!-- Bottom Controls Section -->
+        <div class="bottom-controls">
+            <div class="admin-section" id="adminSection">
+                <button class="admin-login-btn" id="adminLoginBtn" title="Admin Login">
+                    <i class="fas fa-user-shield"></i>
+                    <span>Admin Login</span>
+                </button>
+                <button class="admin-logout-btn" id="adminLogoutBtn" title="Admin Logout" style="display: none;">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Admin Logout</span>
+                </button>
+            </div>
+            <button class="theme-toggle-btn" id="themeToggle" title="Toggle Dark Mode">
+                <i class="fas fa-moon"></i>
+                <span>Dark Mode</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Add Notice Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Add New Notice</h2>
+                <button class="close-btn" id="closeModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form class="modal-body" id="noticeForm">
+                <div class="form-group">
+                    <label for="noticeTitle">Title *</label>
+                    <input type="text" id="noticeTitle" required>
+                </div>
+                <div class="form-group">
+                    <label for="noticeContent">Content *</label>
+                    <div id="noticeContentEditor" class="editor-container"></div>
+                    <textarea id="noticeContent" style="display: none;"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="noticeCategory">Category *</label>
+                        <select id="noticeCategory" required>
+                            <option value="">Select Category</option>
+                            <option value="academic">Academic</option>
+                            <option value="events">Events</option>
+                            <option value="exams">Exams</option>
+                            <option value="urgent">Urgent</option>
+                            <option value="scholarship">Scholarship</option>
+                            <option value="fee-payments">Fee Payments</option>
+                            <option value="admission">Admission</option>
+                            <option value="placement">Placement</option>
+                            <option value="library">Library</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="noticePriority">Priority</label>
+                        <select id="noticePriority">
+                            <option value="normal">Normal</option>
+                            <option value="high">High</option>
+                            <option value="critical">Critical</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="noticeDate">Notice Date *</label>
+                        <input type="date" id="noticeDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="noticeDeadline">Deadline (Optional)</label>
+                        <input type="date" id="noticeDeadline">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="noticeTags">Tags (Keywords)</label>
+                    <div class="tags-input-container">
+                        <div class="tags-display" id="tagsDisplay"></div>
+                        <input type="text" id="tagInput" placeholder="Add tags (press Enter)" class="tag-input">
+                    </div>
+                    <small class="form-help">Add relevant keywords to help categorize and find this notice</small>
+                </div>
+                <div class="form-group">
+                    <label for="noticeAuthor">Posted By</label>
+                    <input type="text" id="noticeAuthor" placeholder="Department/Faculty name">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" id="cancelBtn">Cancel</button>
+                    <button type="submit" class="btn-primary" id="submitBtn">Add Notice</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+
+    <!-- Admin Login Modal -->
+    <div class="modal-overlay" id="adminLoginModal">
+        <div class="modal admin-modal">
+            <div class="modal-header">
+                <h2>
+                    <i class="fas fa-user-shield"></i>
+                    Admin Login
+                </h2>
+                <button class="close-btn" id="closeAdminModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="adminLoginForm">
+                    <div class="form-group">
+                        <label for="adminPassword">Admin Access Code</label>
+                        <input type="password" id="adminPassword" placeholder="Enter admin access code" required autocomplete="current-password">
+                        <small class="form-help">Enter the admin access code to manage notices</small>
+                    </div>
+                    <div id="loginError" class="login-error" style="display: none;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Invalid access code. Please try again.
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-secondary" id="cancelAdminLogin">Cancel</button>
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-sign-in-alt"></i>
+                            Login
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+    
+    <!-- JSONBin Configuration -->
+    <script>
+        // JSONBin.io Configuration
+        // Replace 'YOUR_API_KEY' with your actual JSONBin.io API key
+        // Replace 'YOUR_BIN_ID' with your actual bin ID
+        window.JSONBIN_CONFIG = {
+            apiKey: '$2a$10$H.DrlHVNkCpqrbUq6BT2JuXigtFUAiwUYUbj6sxLHZruM3neHGb9G',
+            binId: '686423e98960c979a5b5648c',
+            baseUrl: 'https://api.jsonbin.io/v3'
+        };
+    </script>
+    
+    <script src="script.js"></script>
+</body>
+</html>
