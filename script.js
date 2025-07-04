@@ -14,6 +14,8 @@ class NoticeBoard {
         this.adminCode = 'teju_smp';
         this.pollInterval = null;
         this.lastModified = null;
+        this.currentSlide = 0;
+        this.filteredNotices = [];
         this.initializeTheme();
         this.initializeEditor();
         this.initializeEventListeners();
@@ -69,6 +71,10 @@ class NoticeBoard {
 
         // Set default date to today
         document.getElementById('noticeDate').valueAsDate = new Date();
+        
+        // Navigation controls
+        document.getElementById('prevButton').addEventListener('click', () => this.previousSlide());
+        document.getElementById('nextButton').addEventListener('click', () => this.nextSlide());
     }
 
     openModal(notice = null) {
@@ -538,20 +544,25 @@ class NoticeBoard {
         const noticesGrid = document.getElementById('noticesGrid');
         const emptyState = document.getElementById('emptyState');
         const filteredNotices = this.getFilteredNotices();
+        this.filteredNotices = filteredNotices;
 
         // Render dynamic category filters
         this.renderCategoryFilters();
 
         if (filteredNotices.length === 0) {
             noticesGrid.style.display = 'none';
-            emptyState.style.display = 'block';
+            emptyState.style.display = 'none';
+            document.getElementById('noticesNavigation').style.display = 'none';
             return;
         }
 
-        noticesGrid.style.display = 'grid';
+        noticesGrid.style.display = 'flex';
         emptyState.style.display = 'none';
 
         noticesGrid.innerHTML = filteredNotices.map(notice => this.createNoticeCard(notice)).join('');
+        
+        // Update navigation
+        this.updateNavigation();
 
         // Add event listeners for notice actions
         document.querySelectorAll('.delete-btn').forEach(btn => {
@@ -1300,6 +1311,75 @@ class NoticeBoard {
             adminLoginBtn.style.display = 'flex';
             adminLogoutBtn.style.display = 'none';
             addNoticeBtn.style.display = 'none';
+        }
+    }
+
+    updateNavigation() {
+        const navigation = document.getElementById('noticesNavigation');
+        const prevButton = document.getElementById('prevButton');
+        const nextButton = document.getElementById('nextButton');
+        const indicators = document.getElementById('navIndicators');
+        
+        if (this.filteredNotices.length <= 1) {
+            navigation.style.display = 'none';
+            return;
+        }
+        
+        // Show navigation on wider screens
+        if (window.innerWidth > 768) {
+            navigation.style.display = 'flex';
+        } else {
+            navigation.style.display = 'none';
+            return;
+        }
+        
+        // Update button states
+        prevButton.disabled = this.currentSlide === 0;
+        nextButton.disabled = this.currentSlide >= this.filteredNotices.length - 1;
+        
+        // Update indicators
+        indicators.innerHTML = this.filteredNotices.map((_, index) => 
+            `<div class="nav-dot ${index === this.currentSlide ? 'active' : ''}" data-slide="${index}"></div>`
+        ).join('');
+        
+        // Add click listeners to dots
+        document.querySelectorAll('.nav-dot').forEach(dot => {
+            dot.addEventListener('click', () => this.goToSlide(parseInt(dot.dataset.slide)));
+        });
+    }
+
+    previousSlide() {
+        if (this.currentSlide > 0) {
+            this.currentSlide--;
+            this.scrollToCurrentSlide();
+            this.updateNavigation();
+        }
+    }
+
+    nextSlide() {
+        if (this.currentSlide < this.filteredNotices.length - 1) {
+            this.currentSlide++;
+            this.scrollToCurrentSlide();
+            this.updateNavigation();
+        }
+    }
+
+    goToSlide(index) {
+        this.currentSlide = index;
+        this.scrollToCurrentSlide();
+        this.updateNavigation();
+    }
+
+    scrollToCurrentSlide() {
+        const noticesGrid = document.getElementById('noticesGrid');
+        const cards = noticesGrid.children;
+        
+        if (cards[this.currentSlide]) {
+            cards[this.currentSlide].scrollIntoView({
+                behavior: 'smooth',
+                block: 'nearest',
+                inline: 'start'
+            });
         }
     }
     

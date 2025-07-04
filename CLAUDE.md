@@ -133,10 +133,10 @@ Notices are stored as objects with these properties:
 - **Sync State**: Online/offline mode, last sync time, error states
 
 ### Mobile-Responsive Features
-- **Bottom Search Bar**: Fixed search/filter controls on mobile (`styles.css:1241`)
+- **Bottom Search Bar**: Fixed search/filter controls on mobile (`styles.css:1357`)
 - **Collapsible Filters**: Horizontal scrolling filter buttons on mobile
 - **Touch-friendly**: Appropriate touch targets and spacing
-- **Responsive Grid**: Auto-adjusting grid columns based on screen size
+- **Horizontal Scrolling Layout**: Notices display in single row with horizontal scroll on all devices (`styles.css:494`)
 
 ## Admin Authentication System
 
@@ -154,7 +154,7 @@ Notices are stored as objects with these properties:
 - See JSONBIN_SETUP.md for detailed setup instructions
 
 ### Sync Behavior
-- **Polling Frequency**: Checks for updates every 5 seconds (`script.js:673`)
+- **Polling Frequency**: Checks for updates every 5 seconds (configurable in `script.js`)
 - **Write Strategy**: Immediate save to cloud on any change
 - **Read Strategy**: Load from cloud on startup, check for updates via polling
 - **Conflict Resolution**: Last-write-wins with local backup retention
@@ -173,16 +173,23 @@ Notices are stored as objects with these properties:
 - Consistent spacing, colors, shadows, and border radius values
 
 ### Responsive Breakpoints
-- **Desktop**: Default styles, grid layout
-- **Tablet** (1024px): Adjusted grid columns
-- **Mobile** (768px): Bottom search bar, single column, touch-friendly
-- **Small Mobile** (480px): Further spacing adjustments
+- **Desktop**: Default styles, horizontal scrolling notice layout
+- **Tablet** (1024px): Adjusted card sizing, maintains horizontal scroll
+- **Mobile** (768px): Bottom controls, compact header spacing, horizontal scroll with smaller cards
+- **Small Mobile** (480px): Further spacing optimizations, maintains horizontal notice flow
 
 ### Design Features
 - **Glassmorphism**: Backdrop-filter effects with transparency
 - **Smooth Animations**: CSS transitions with cubic-bezier timing
 - **Priority Indicators**: Visual emphasis for high/critical notices
 - **Category Color Coding**: Consistent color scheme across categories
+- **Horizontal Scroll Layout**: Modern horizontal notice flow with custom scrollbar styling
+
+### Layout Architecture
+- **Main Content Container** (`styles.css:488`): Handles horizontal overflow and scrollbar
+- **Notices Grid** (`styles.css:495`): Flex container with `flex-wrap: nowrap` for horizontal flow
+- **Notice Cards**: Fixed dimensions with `flex-shrink: 0` to maintain consistent sizing
+- **Responsive Card Sizing**: Cards adjust from 400-500px (desktop) to 300-400px (mobile)
 
 ## External Dependencies (CDN)
 
