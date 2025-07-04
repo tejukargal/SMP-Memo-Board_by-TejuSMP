@@ -1430,13 +1430,13 @@ body.dark-mode .notice-card {
     }
     
     .notice-card {
-        width: 280px;
-        height: 400px;
+        width: calc(90vw - 32px);
+        height: 60vh;
         padding: 20px;
     }
     
     .notice-content {
-        max-height: 150px;
+        max-height: 35vh;
     }
     
     .form-row,
@@ -1647,8 +1647,8 @@ body.dark-mode .bottom-controls {
 @media (max-width: 480px) {
     .notice-card {
         padding: 16px;
-        width: 250px;
-        height: 350px;
+        width: calc(95vw - 24px);
+        height: 65vh;
     }
     
     .notices-grid {
@@ -1663,7 +1663,7 @@ body.dark-mode .bottom-controls {
     }
     
     .notice-content {
-        max-height: 120px;
+        max-height: 40vh;
         font-size: 0.9rem;
     }
     
