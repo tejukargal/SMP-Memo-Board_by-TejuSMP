@@ -846,7 +846,7 @@ class NoticeBoard {
         const notification = document.createElement('div');
         notification.className = `notification ${type}`;
         notification.innerHTML = `
-            <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}"></i>
             <span>${message}</span>
         `;
 
@@ -855,7 +855,7 @@ class NoticeBoard {
             position: 'fixed',
             top: '20px',
             right: '20px',
-            background: type === 'success' ? '#2ed573' : type === 'error' ? '#ff4757' : '#667eea',
+            background: type === 'success' ? '#2ed573' : type === 'error' ? '#ff4757' : type === 'warning' ? '#ffa502' : '#667eea',
             color: 'white',
             padding: '12px 20px',
             borderRadius: '8px',
@@ -916,13 +916,21 @@ class NoticeBoard {
 
             if (response.ok) {
                 const result = await response.json();
-                this.notices = result.record?.notices || result.notices || [];
+                const cloudNotices = result.record?.notices || result.notices || [];
+                const attachmentsStripped = result.record?.attachmentsStripped || result.attachmentsStripped || false;
                 this.lastModified = result.metadata?.version_updated || response.headers.get('X-Bin-Version-Updated') || new Date().toISOString();
                 
-                if (this.notices.length === 0) {
+                if (cloudNotices.length === 0) {
                     this.notices = this.loadSampleNotices();
                     await this.saveToJSONBin();
                 } else {
+                    // If attachments were stripped from cloud storage, merge with local data
+                    if (attachmentsStripped) {
+                        const localNotices = this.getLocalNotices();
+                        this.notices = this.mergeNoticesWithAttachments(cloudNotices, localNotices);
+                    } else {
+                        this.notices = cloudNotices;
+                    }
                     this.saveNoticesLocally(); // Save loaded data locally as backup
                 }
             } else {
@@ -942,22 +950,46 @@ class NoticeBoard {
         if (!this.isJSONBinConfigured()) return;
         
         try {
+            // Check payload size before sending
+            const payload = {
+                notices: this.notices,
+                lastUpdated: new Date().toISOString()
+            };
+            
+            const payloadSize = JSON.stringify(payload).length;
+            const maxSize = 500000; // 500KB limit for JSONBin
+            
+            if (payloadSize > maxSize) {
+                // Try to save without file attachments if payload is too large
+                console.warn('Payload too large, attempting to save without file attachments');
+                const noticesWithoutAttachments = this.notices.map(notice => {
+                    const { attachments, ...noticeWithoutAttachments } = notice;
+                    return {
+                        ...noticeWithoutAttachments,
+                        hasAttachments: attachments && attachments.length > 0,
+                        attachmentCount: attachments ? attachments.length : 0
+                    };
+                });
+                
+                payload.notices = noticesWithoutAttachments;
+                payload.attachmentsStripped = true;
+                
+                this.showNotification('File attachments saved locally only due to size limits', 'warning');
+            }
+            
             const response = await fetch(`${window.JSONBIN_CONFIG.baseUrl}/b/${window.JSONBIN_CONFIG.binId}`, {
                 method: 'PUT',
                 headers: {
                     'X-Master-Key': window.JSONBIN_CONFIG.apiKey,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    notices: this.notices,
-                    lastUpdated: new Date().toISOString()
-                })
+                body: JSON.stringify(payload)
             });
 
             if (response.ok) {
                 const result = await response.json();
                 this.lastModified = result.metadata.version_updated;
-                this.saveNoticesLocally(); // Also save locally as backup
+                this.saveNoticesLocally(); // Also save locally as backup with full data
                 this.updateAvailableTags();
                 this.renderNotices();
             } else {
@@ -986,14 +1018,23 @@ class NoticeBoard {
                 const lastModified = result.metadata?.version_updated || response.headers.get('X-Bin-Version-Updated');
                 
                 if (lastModified && lastModified !== this.lastModified) {
-                    this.notices = result.record?.notices || result.notices || [];
+                    const cloudNotices = result.record?.notices || result.notices || [];
+                    const attachmentsStripped = result.record?.attachmentsStripped || result.attachmentsStripped || false;
+                    
+                    // If attachments were stripped from cloud storage, merge with local data
+                    if (attachmentsStripped) {
+                        const localNotices = this.getLocalNotices();
+                        this.notices = this.mergeNoticesWithAttachments(cloudNotices, localNotices);
+                    } else {
+                        this.notices = cloudNotices;
+                    }
+                    
                     this.lastModified = lastModified;
                     this.saveNoticesLocally(); // Save updated data locally
                     this.updateAvailableTags();
                     this.renderNotices();
                 }
-            } else {
-                }
+            }
         } catch (error) {
             console.error('Error checking for updates:', error);
         }
@@ -1107,6 +1148,37 @@ class NoticeBoard {
             console.error('Error saving notices locally:', error);
             this.showNotification('Error saving notice locally. Please try again.', 'error');
         }
+    }
+
+    getLocalNotices() {
+        try {
+            const stored = localStorage.getItem('college-notices');
+            return stored ? JSON.parse(stored) : [];
+        } catch (error) {
+            console.error('Error loading local notices:', error);
+            return [];
+        }
+    }
+
+    mergeNoticesWithAttachments(cloudNotices, localNotices) {
+        // Create a map of local notices for quick lookup
+        const localNoticesMap = new Map();
+        localNotices.forEach(notice => {
+            localNoticesMap.set(notice.id, notice);
+        });
+
+        // Merge cloud notices with local attachments
+        return cloudNotices.map(cloudNotice => {
+            const localNotice = localNoticesMap.get(cloudNotice.id);
+            if (localNotice && localNotice.attachments && localNotice.attachments.length > 0) {
+                // Use local attachments if available
+                return {
+                    ...cloudNotice,
+                    attachments: localNotice.attachments
+                };
+            }
+            return cloudNotice;
+        });
     }
     
     updateAvailableTags() {
