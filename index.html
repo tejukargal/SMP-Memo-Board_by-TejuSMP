@@ -57,21 +57,15 @@
         </div>
 
         <main class="main-content">
-            <!-- Navigation Controls -->
-            <div class="notices-navigation" id="noticesNavigation">
-                <button class="nav-button" id="prevButton" title="Previous Notice">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-                <div class="nav-indicators" id="navIndicators">
-                    <!-- Navigation dots will be generated here -->
-                </div>
-                <button class="nav-button" id="nextButton" title="Next Notice">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
-            </div>
-            
             <div class="notices-grid" id="noticesGrid">
                 <!-- Notices will be dynamically generated here -->
+            </div>
+            
+            <!-- Simple Navigation Bar Below Cards -->
+            <div class="notices-navigation" id="noticesNavigation">
+                <div class="nav-scrollbar" id="navScrollbar">
+                    <div class="nav-track" id="navTrack"></div>
+                </div>
             </div>
 
             <div class="empty-state" id="emptyState" style="display: none;">

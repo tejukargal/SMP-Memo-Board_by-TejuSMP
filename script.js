@@ -72,9 +72,11 @@ class NoticeBoard {
         // Set default date to today
         document.getElementById('noticeDate').valueAsDate = new Date();
         
-        // Navigation controls
-        document.getElementById('prevButton').addEventListener('click', () => this.previousSlide());
-        document.getElementById('nextButton').addEventListener('click', () => this.nextSlide());
+        // Navigation scroll bar
+        this.initializeScrollBar();
+        
+        // Sync navigation with scroll
+        this.initializeScrollSync();
     }
 
     openModal(notice = null) {
@@ -1316,9 +1318,6 @@ class NoticeBoard {
 
     updateNavigation() {
         const navigation = document.getElementById('noticesNavigation');
-        const prevButton = document.getElementById('prevButton');
-        const nextButton = document.getElementById('nextButton');
-        const indicators = document.getElementById('navIndicators');
         
         if (this.filteredNotices.length <= 1) {
             navigation.style.display = 'none';
@@ -1327,42 +1326,58 @@ class NoticeBoard {
         
         // Show navigation on wider screens
         if (window.innerWidth > 768) {
-            navigation.style.display = 'flex';
+            navigation.style.display = 'block';
         } else {
             navigation.style.display = 'none';
             return;
         }
         
-        // Update button states
-        prevButton.disabled = this.currentSlide === 0;
-        nextButton.disabled = this.currentSlide >= this.filteredNotices.length - 1;
+        this.updateNavigationProgress();
+    }
+
+    updateNavigationProgress() {
+        const navTrack = document.getElementById('navTrack');
+        const noticesGrid = document.getElementById('noticesGrid');
         
-        // Update indicators
-        indicators.innerHTML = this.filteredNotices.map((_, index) => 
-            `<div class="nav-dot ${index === this.currentSlide ? 'active' : ''}" data-slide="${index}"></div>`
-        ).join('');
+        if (!navTrack || !noticesGrid) return;
         
-        // Add click listeners to dots
-        document.querySelectorAll('.nav-dot').forEach(dot => {
-            dot.addEventListener('click', () => this.goToSlide(parseInt(dot.dataset.slide)));
+        const scrollLeft = noticesGrid.scrollLeft;
+        const maxScroll = noticesGrid.scrollWidth - noticesGrid.clientWidth;
+        const progress = maxScroll > 0 ? scrollLeft / maxScroll : 0;
+        
+        navTrack.style.width = `${(progress * 100)}%`;
+    }
+
+    initializeScrollBar() {
+        const navScrollbar = document.getElementById('navScrollbar');
+        const noticesGrid = document.getElementById('noticesGrid');
+
+        // Click on scroll bar to jump to position
+        navScrollbar.addEventListener('click', (e) => {
+            if (this.filteredNotices.length > 1) {
+                const rect = navScrollbar.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                const progress = clickX / rect.width;
+                const maxScroll = noticesGrid.scrollWidth - noticesGrid.clientWidth;
+                const targetScrollLeft = progress * maxScroll;
+                
+                noticesGrid.scrollTo({
+                    left: targetScrollLeft,
+                    behavior: 'smooth'
+                });
+            }
         });
     }
 
-    previousSlide() {
-        if (this.currentSlide > 0) {
-            this.currentSlide--;
-            this.scrollToCurrentSlide();
-            this.updateNavigation();
-        }
+    initializeScrollSync() {
+        const noticesGrid = document.getElementById('noticesGrid');
+        
+        // Update navigation bar when scrolling
+        noticesGrid.addEventListener('scroll', () => {
+            this.updateNavigationProgress();
+        });
     }
 
-    nextSlide() {
-        if (this.currentSlide < this.filteredNotices.length - 1) {
-            this.currentSlide++;
-            this.scrollToCurrentSlide();
-            this.updateNavigation();
-        }
-    }
 
     goToSlide(index) {
         this.currentSlide = index;
