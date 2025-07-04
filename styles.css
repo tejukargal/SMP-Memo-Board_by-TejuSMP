@@ -492,6 +492,7 @@ body.dark-mode .top-category-filter {
     padding-bottom: 100px;
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
 }
 
 /* Notices Grid/List - Horizontal Scroll Layout */
@@ -543,7 +544,8 @@ body.dark-mode .top-category-filter {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    scroll-snap-align: center;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
 }
 
 body.dark-mode .notice-card {
@@ -1430,13 +1432,15 @@ body.dark-mode .notice-card {
     }
     
     .notice-card {
-        width: calc(90vw - 32px);
-        height: 60vh;
+        width: calc(95vw - 24px);
+        height: 75vh;
         padding: 20px;
+        scroll-snap-align: start;
+        scroll-snap-stop: always;
     }
     
     .notice-content {
-        max-height: 35vh;
+        max-height: 50vh;
     }
     
     .form-row,
@@ -1647,15 +1651,17 @@ body.dark-mode .bottom-controls {
 @media (max-width: 480px) {
     .notice-card {
         padding: 16px;
-        width: calc(95vw - 24px);
-        height: 65vh;
+        width: calc(98vw - 16px);
+        height: 80vh;
+        scroll-snap-align: start;
+        scroll-snap-stop: always;
     }
     
     .notices-grid {
         display: flex !important;
         flex-direction: row !important;
-        gap: 12px;
-        padding: 8px 12px;
+        gap: 8px;
+        padding: 8px 8px;
     }
     
     .notices-navigation {
@@ -1663,7 +1669,7 @@ body.dark-mode .bottom-controls {
     }
     
     .notice-content {
-        max-height: 40vh;
+        max-height: 55vh;
         font-size: 0.9rem;
     }
     
