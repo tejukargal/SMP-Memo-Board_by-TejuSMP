@@ -20,6 +20,7 @@ class NoticeBoard {
         this.initializeEditor();
         this.initializeEventListeners();
         this.initializeAdminState();
+        this.initializeSubHeaderDisplay();
         this.initializeJSONBin();
     }
 
@@ -302,6 +303,20 @@ class NoticeBoard {
                 ]
             }
         });
+    }
+
+    initializeSubHeaderDisplay() {
+        const subHeader = document.getElementById('subHeader');
+        if (subHeader) {
+            // Show sub-header for 8 seconds, then fade out
+            setTimeout(() => {
+                subHeader.classList.add('hidden');
+                // Remove from DOM after fade animation completes
+                setTimeout(() => {
+                    subHeader.style.display = 'none';
+                }, 500);
+            }, 8000);
+        }
     }
 
     setupFileDragDrop() {
