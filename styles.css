@@ -71,9 +71,11 @@ body.dark-mode {
 /* Header Styles */
 .header {
     background: linear-gradient(135deg, #2c5f2d 0%, #1a4d1a 30%, #0f3b0f 70%, #0a2b0a 100%);
-    position: relative;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
     border-radius: var(--radius-xl);
-    padding: 48px 32px;
+    padding: 20px 32px;
     margin-bottom: 8px;
     box-shadow: 
         var(--shadow-xl), 
@@ -82,7 +84,6 @@ body.dark-mode {
     border: 3px solid #4a5f4a;
     overflow: hidden;
     transition: all 0.3s ease;
-    animation: gentle-float 6s ease-in-out infinite;
 }
 
 .header:hover {
@@ -219,6 +220,13 @@ body.dark-mode .header {
     backdrop-filter: blur(10px);
     position: relative;
     overflow: hidden;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.sub-header.hidden {
+    opacity: 0;
+    transform: translateY(-20px);
+    pointer-events: none;
 }
 
 .sub-header::before {
@@ -1428,8 +1436,9 @@ body.dark-mode .notice-author {
     }
     
     .header {
-        padding: 24px;
-        margin-bottom: 16px;
+        padding: 16px 20px;
+        margin-bottom: 8px;
+        border-radius: var(--radius-lg);
     }
     
     .sub-header {
@@ -1490,7 +1499,8 @@ body.dark-mode .notice-author {
     }
     
     .main-content {
-        margin-top: 8px;
+        margin-top: 0px;
+        padding-top: 8px;
         padding-bottom: 140px; /* Account for fixed category filter and bottom controls */
     }
     
@@ -1758,7 +1768,8 @@ body.dark-mode .bottom-category-filter {
     }
     
     .main-content {
-        margin-top: 20px;
+        margin-top: 0px;
+        padding-top: 8px;
         padding-bottom: 130px; /* Account for fixed category filter and bottom controls on small mobile */
     }
     
@@ -1786,8 +1797,9 @@ body.dark-mode .bottom-category-filter {
     }
     
     .header {
-        padding: 16px;
-        margin-bottom: 8px;
+        padding: 12px 16px;
+        margin-bottom: 4px;
+        border-radius: var(--radius-md);
     }
     
     .add-notice-btn {
