@@ -422,7 +422,7 @@ body.dark-mode .header {
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: var(--radius-lg);
     padding: 12px 24px;
-    margin: 20px 0 20px 0;
+    margin: 0 0 1px 0;
     box-shadow: var(--shadow-md);
     transition: all 0.3s ease;
 }
@@ -445,17 +445,25 @@ body.dark-mode .bottom-category-filter {
     justify-content: center;
 }
 
-.filter-buttons::-webkit-scrollbar {
-    height: 4px;
+@media (max-width: 768px) {
+    .filter-buttons::-webkit-scrollbar {
+        height: 4px;
+    }
+
+    .filter-buttons::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .filter-buttons::-webkit-scrollbar-thumb {
+        background: var(--border-color);
+        border-radius: 2px;
+    }
 }
 
-.filter-buttons::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.filter-buttons::-webkit-scrollbar-thumb {
-    background: var(--border-color);
-    border-radius: 2px;
+@media (min-width: 769px) {
+    .filter-buttons::-webkit-scrollbar {
+        display: none;
+    }
 }
 
 .filter-btn {
@@ -488,7 +496,7 @@ body.dark-mode .bottom-category-filter {
     overflow-x: hidden;
     overflow-y: hidden;
     padding-bottom: 100px;
-    margin-top: 20px;
+    margin-top: 1px;
     position: relative;
 }
 
@@ -1482,7 +1490,7 @@ body.dark-mode .notice-author {
     }
     
     .main-content {
-        margin-top: 20px;
+        margin-top: 8px;
         padding-bottom: 140px; /* Account for fixed category filter and bottom controls */
     }
     
