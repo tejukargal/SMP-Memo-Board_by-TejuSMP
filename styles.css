@@ -71,9 +71,7 @@ body.dark-mode {
 /* Header Styles */
 .header {
     background: linear-gradient(135deg, #2c5f2d 0%, #1a4d1a 30%, #0f3b0f 70%, #0a2b0a 100%);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
+    position: relative;
     border-radius: var(--radius-xl);
     padding: 20px 32px;
     margin-bottom: 8px;
@@ -504,7 +502,7 @@ body.dark-mode .bottom-category-filter {
     overflow-x: hidden;
     overflow-y: hidden;
     padding-bottom: 100px;
-    margin-top: 1px;
+    margin-top: 12px;
     position: relative;
 }
 
@@ -1499,7 +1497,7 @@ body.dark-mode .notice-author {
     }
     
     .main-content {
-        margin-top: 0px;
+        margin-top: 12px;
         padding-top: 8px;
         padding-bottom: 140px; /* Account for fixed category filter and bottom controls */
     }
@@ -1768,7 +1766,7 @@ body.dark-mode .bottom-category-filter {
     }
     
     .main-content {
-        margin-top: 0px;
+        margin-top: 12px;
         padding-top: 8px;
         padding-bottom: 130px; /* Account for fixed category filter and bottom controls on small mobile */
     }
