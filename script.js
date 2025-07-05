@@ -548,7 +548,7 @@ class NoticeBoard {
             return;
         }
 
-        noticesGrid.style.display = 'grid';
+        noticesGrid.style.display = 'flex';
         emptyState.style.display = 'none';
 
         noticesGrid.innerHTML = filteredNotices.map(notice => this.createNoticeCard(notice)).join('');

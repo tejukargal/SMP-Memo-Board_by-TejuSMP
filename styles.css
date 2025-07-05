@@ -484,12 +484,86 @@ body.dark-mode .top-category-filter {
     transform: translateY(-1px);
 }
 
-/* Notices Grid/List */
+/* Notices Grid/List - Horizontal Scrolling */
 .notices-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    display: flex !important;
+    flex-direction: row;
     gap: 24px;
     margin-bottom: 40px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 8px 0 16px 0;
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-color) transparent;
+    /* Touch-friendly scrolling */
+    -webkit-overflow-scrolling: touch;
+    /* Snap scrolling for better UX */
+    scroll-snap-type: x mandatory;
+    /* Scroll indicator shadow for better UX */
+    background: 
+        linear-gradient(90deg, var(--bg-primary) 0%, transparent 10%) 0 0,
+        linear-gradient(270deg, var(--bg-primary) 0%, transparent 10%) 100% 0,
+        radial-gradient(farthest-side at 0 50%, rgba(0,0,0,0.1) 0%, transparent 50%) 0 0,
+        radial-gradient(farthest-side at 100% 50%, rgba(0,0,0,0.1) 0%, transparent 50%) 100% 0;
+    background-repeat: no-repeat;
+    background-size: 20px 100%, 20px 100%, 10px 100%, 10px 100%;
+    background-attachment: local, local, scroll, scroll;
+}
+
+/* Webkit scrollbar styling */
+.notices-grid::-webkit-scrollbar {
+    height: 8px;
+}
+
+.notices-grid::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+}
+
+.notices-grid::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+}
+
+.notices-grid::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-color);
+}
+
+/* Focus outline for keyboard navigation */
+.notices-grid:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* Scroll hint indicator */
+.notices-grid::after {
+    content: "← Scroll horizontally to view all notices →";
+    position: absolute;
+    bottom: -8px;
+    right: 16px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    background: var(--bg-primary);
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm);
+    opacity: 0.7;
+    transition: var(--transition);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Hide scroll hint on hover or focus */
+.notices-grid:hover::after,
+.notices-grid:focus::after {
+    opacity: 0;
+}
+
+/* Container for notices grid with relative positioning */
+.main-content {
+    position: relative;
 }
 
 
@@ -504,6 +578,13 @@ body.dark-mode .top-category-filter {
     position: relative;
     overflow: hidden;
     border: 1px solid rgba(255, 255, 255, 0.2);
+    flex: 0 0 400px !important;
+    min-width: 400px;
+    max-width: 400px;
+    height: auto;
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
 }
 
 body.dark-mode .notice-card {
@@ -1238,8 +1319,17 @@ body.dark-mode .notice-card {
 /* Responsive Design */
 @media (max-width: 1024px) {
     .notices-grid {
-        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        display: flex !important;
+        flex-direction: row !important;
         gap: 20px;
+        padding: 8px 0 12px 0;
+    }
+    
+    .notice-card {
+        flex: 0 0 350px !important;
+        min-width: 350px;
+        max-width: 350px;
+        padding: 24px;
     }
 }
 
@@ -1300,8 +1390,26 @@ body.dark-mode .notice-card {
     }
     
     .notices-grid {
-        grid-template-columns: 1fr;
+        display: flex !important;
+        flex-direction: row !important;
         gap: 16px;
+        padding: 8px 0 12px 0;
+    }
+    
+    .notice-card {
+        flex: 0 0 300px !important;
+        min-width: 300px;
+        max-width: 300px;
+        padding: 20px;
+    }
+    
+    /* Mobile scroll hint */
+    .notices-grid::after {
+        content: "← Swipe to view more →";
+        font-size: 0.7rem;
+        bottom: -6px;
+        right: 12px;
+        padding: 3px 6px;
     }
     
     .form-row,
@@ -1513,8 +1621,27 @@ body.dark-mode .bottom-controls {
 }
 
 @media (max-width: 480px) {
+    .notices-grid {
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 12px;
+        padding: 8px 0 10px 0;
+    }
+    
     .notice-card {
-        padding: 20px;
+        flex: 0 0 280px !important;
+        min-width: 280px;
+        max-width: 280px;
+        padding: 16px;
+    }
+    
+    /* Extra small mobile scroll hint */
+    .notices-grid::after {
+        content: "← Swipe →";
+        font-size: 0.65rem;
+        bottom: -4px;
+        right: 8px;
+        padding: 2px 4px;
     }
     
     .notice-footer {
