@@ -74,7 +74,7 @@ body.dark-mode {
     position: relative;
     border-radius: var(--radius-xl);
     padding: 48px 32px;
-    margin-bottom: 32px;
+    margin-bottom: 8px;
     box-shadow: 
         var(--shadow-xl), 
         inset 0 0 40px rgba(0, 0, 0, 0.3),
@@ -213,7 +213,7 @@ body.dark-mode .header {
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
     padding: 16px 24px;
-    margin-bottom: 24px;
+    margin-bottom: 12px;
     text-align: center;
     box-shadow: var(--shadow-sm);
     backdrop-filter: blur(10px);
@@ -418,13 +418,13 @@ body.dark-mode .header {
 .top-category-filter {
     position: sticky;
     top: 0;
-    z-index: 100;
+    z-index: 1000;
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: var(--radius-xl);
     padding: 20px 32px;
-    margin: 0 0 32px 0;
+    margin: 0 0 20px 0;
     box-shadow: var(--shadow-lg);
     transition: all 0.3s ease;
 }
@@ -484,34 +484,32 @@ body.dark-mode .top-category-filter {
     transform: translateY(-1px);
 }
 
-/* Notices Grid/List - Horizontal Scrolling */
-.notices-grid {
-    display: flex !important;
-    flex-direction: row;
-    gap: 24px;
-    margin-bottom: 40px;
-    overflow-x: auto;
+/* Main Content Container */
+.main-content {
+    width: 100%;
     overflow-y: hidden;
-    padding: 8px 0 16px 0;
-    scroll-behavior: smooth;
-    scrollbar-width: thin;
-    scrollbar-color: var(--border-color) transparent;
-    /* Touch-friendly scrolling */
-    -webkit-overflow-scrolling: touch;
-    /* Snap scrolling for better UX */
-    scroll-snap-type: x mandatory;
-    /* Scroll indicator shadow for better UX */
-    background: 
-        linear-gradient(90deg, var(--bg-primary) 0%, transparent 10%) 0 0,
-        linear-gradient(270deg, var(--bg-primary) 0%, transparent 10%) 100% 0,
-        radial-gradient(farthest-side at 0 50%, rgba(0,0,0,0.1) 0%, transparent 50%) 0 0,
-        radial-gradient(farthest-side at 100% 50%, rgba(0,0,0,0.1) 0%, transparent 50%) 100% 0;
-    background-repeat: no-repeat;
-    background-size: 20px 100%, 20px 100%, 10px 100%, 10px 100%;
-    background-attachment: local, local, scroll, scroll;
+    padding-bottom: 100px;
+    margin-top: 20px;
+    position: relative;
 }
 
-/* Webkit scrollbar styling */
+/* Notices Grid/List - Horizontal Scroll Layout */
+.notices-grid {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    gap: 24px;
+    margin-bottom: 20px;
+    padding: 8px 24px;
+    scroll-behavior: smooth;
+    height: auto;
+    align-items: flex-start;
+    width: max-content;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+}
+
 .notices-grid::-webkit-scrollbar {
     height: 8px;
 }
@@ -524,67 +522,33 @@ body.dark-mode .top-category-filter {
 .notices-grid::-webkit-scrollbar-thumb {
     background: var(--border-color);
     border-radius: var(--radius-sm);
-    transition: var(--transition);
 }
 
 .notices-grid::-webkit-scrollbar-thumb:hover {
-    background: var(--primary-color);
+    background: var(--text-muted);
 }
 
-/* Focus outline for keyboard navigation */
-.notices-grid:focus {
-    outline: 2px solid var(--primary-color);
-    outline-offset: 2px;
-}
-
-/* Scroll hint indicator */
-.notices-grid::after {
-    content: "← Scroll horizontally to view all notices →";
-    position: absolute;
-    bottom: -8px;
-    right: 16px;
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    background: var(--bg-primary);
-    padding: 4px 8px;
-    border-radius: var(--radius-sm);
-    box-shadow: var(--shadow-sm);
-    opacity: 0.7;
-    transition: var(--transition);
-    pointer-events: none;
-    z-index: 1;
-}
-
-/* Hide scroll hint on hover or focus */
-.notices-grid:hover::after,
-.notices-grid:focus::after {
-    opacity: 0;
-}
-
-/* Container for notices grid with relative positioning */
-.main-content {
-    position: relative;
-}
 
 
 .notice-card {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(20px);
     border-radius: var(--radius-xl);
-    padding: 28px;
+    padding: 24px;
     box-shadow: var(--shadow-md);
     transition: var(--transition-slow);
     border-left: 4px solid var(--primary-color);
     position: relative;
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    flex: 0 0 400px !important;
-    min-width: 400px;
-    max-width: 400px;
-    height: auto;
-    scroll-snap-align: start;
+    border: 2px solid rgba(102, 126, 234, 0.3);
+    flex-shrink: 0;
+    width: 400px;
+    height: 500px;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
 }
 
 body.dark-mode .notice-card {
@@ -771,6 +735,10 @@ body.dark-mode .notice-card {
     line-height: 1.6;
     margin-bottom: 20px;
     font-size: 0.95rem;
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    max-height: 200px;
 }
 
 .notice-content * {
@@ -1316,20 +1284,92 @@ body.dark-mode .notice-card {
     box-shadow: var(--shadow-md);
 }
 
+/* Navigation Scroll Bar */
+.notices-navigation {
+    margin-top: 16px;
+    padding: 0 24px;
+}
+
+.nav-scrollbar {
+    width: 100%;
+    height: 12px;
+    background: var(--bg-secondary);
+    border-radius: 6px;
+    position: relative;
+    cursor: pointer;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.nav-track {
+    height: 100%;
+    background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+    border-radius: 6px;
+    transition: width 0.3s ease;
+    position: relative;
+}
+
+.nav-thumb {
+    position: absolute;
+    right: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 12px;
+    height: 12px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    box-shadow: var(--shadow-md);
+    cursor: grab;
+}
+
+.nav-thumb:active {
+    cursor: grabbing;
+    transform: translateY(-50%) scale(1.2);
+}
+
+.nav-indicators {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+    margin-top: 8px;
+}
+
+.nav-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--border-color);
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+.nav-dot.active {
+    background: var(--primary-color);
+    transform: scale(1.2);
+}
+
 /* Responsive Design */
 @media (max-width: 1024px) {
     .notices-grid {
         display: flex !important;
         flex-direction: row !important;
         gap: 20px;
-        padding: 8px 0 12px 0;
+        padding: 8px 20px;
+    }
+    
+    .notices-navigation {
+        padding: 0 20px;
     }
     
     .notice-card {
-        flex: 0 0 350px !important;
-        min-width: 350px;
-        max-width: 350px;
+        width: 350px;
+        height: 450px;
         padding: 24px;
+        border: 2px solid rgba(102, 126, 234, 0.4);
+    }
+    
+    .notice-content {
+        max-height: 180px;
     }
 }
 
@@ -1340,12 +1380,12 @@ body.dark-mode .notice-card {
     
     .header {
         padding: 24px;
-        margin-bottom: 24px;
+        margin-bottom: 16px;
     }
     
     .sub-header {
         padding: 12px 16px;
-        margin-bottom: 20px;
+        margin-bottom: 12px;
     }
     
     .institution-name {
@@ -1393,23 +1433,29 @@ body.dark-mode .notice-card {
         display: flex !important;
         flex-direction: row !important;
         gap: 16px;
-        padding: 8px 0 12px 0;
+        padding: 8px 16px;
+    }
+    
+    .notices-navigation {
+        display: none;
+    }
+    
+    .main-content {
+        margin-top: 20px;
     }
     
     .notice-card {
-        flex: 0 0 300px !important;
-        min-width: 300px;
-        max-width: 300px;
+        width: calc(95vw - 24px);
+        height: 75vh;
         padding: 20px;
+        scroll-snap-align: start;
+        scroll-snap-stop: always;
+        border: 3px solid rgba(102, 126, 234, 0.5);
+        margin: 0 4px;
     }
     
-    /* Mobile scroll hint */
-    .notices-grid::after {
-        content: "← Swipe to view more →";
-        font-size: 0.7rem;
-        bottom: -6px;
-        right: 12px;
-        padding: 3px 6px;
+    .notice-content {
+        max-height: 50vh;
     }
     
     .form-row,
@@ -1525,9 +1571,6 @@ body.dark-mode .bottom-controls {
     box-shadow: var(--shadow-lg);
 }
 
-.main-content {
-    padding-bottom: 100px; /* Space for bottom controls */
-}
 
 /* Mobile header adjustments */
 @media (max-width: 768px) {
@@ -1537,7 +1580,7 @@ body.dark-mode .bottom-controls {
     
     .header {
         padding: 20px;
-        margin-bottom: 20px;
+        margin-bottom: 12px;
     }
     
     .header-content {
@@ -1591,8 +1634,8 @@ body.dark-mode .bottom-controls {
     }
     
     .top-category-filter {
-        margin: 0 0 24px 0;
-        padding: 16px 20px;
+        margin: 0 0 16px 0;
+        padding: 12px 16px;
         border-radius: var(--radius-lg);
     }
     
@@ -1629,19 +1672,33 @@ body.dark-mode .bottom-controls {
     }
     
     .notice-card {
-        flex: 0 0 280px !important;
-        min-width: 280px;
-        max-width: 280px;
         padding: 16px;
+        width: calc(98vw - 16px);
+        height: 80vh;
+        scroll-snap-align: start;
+        scroll-snap-stop: always;
+        border: 3px solid rgba(102, 126, 234, 0.6);
+        margin: 0 2px;
     }
     
-    /* Extra small mobile scroll hint */
-    .notices-grid::after {
-        content: "← Swipe →";
-        font-size: 0.65rem;
-        bottom: -4px;
-        right: 8px;
-        padding: 2px 4px;
+    .notices-grid {
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 8px;
+        padding: 8px 8px;
+    }
+    
+    .notices-navigation {
+        display: none;
+    }
+    
+    .main-content {
+        margin-top: 20px;
+    }
+    
+    .notice-content {
+        max-height: 55vh;
+        font-size: 0.9rem;
     }
     
     .notice-footer {
@@ -1664,6 +1721,7 @@ body.dark-mode .bottom-controls {
     
     .header {
         padding: 16px;
+        margin-bottom: 8px;
     }
     
     .add-notice-btn {
@@ -1672,8 +1730,8 @@ body.dark-mode .bottom-controls {
     }
     
     .top-category-filter {
-        padding: 12px 16px;
-        margin: 0 0 20px 0;
+        padding: 10px 14px;
+        margin: 0 0 12px 0;
         border-radius: var(--radius-md);
     }
     
@@ -1697,9 +1755,6 @@ body.dark-mode .bottom-controls {
         padding: 8px 12px;
     }
     
-    .main-content {
-        padding-bottom: 90px; /* Space for bottom controls */
-    }
 }
 
 /* File Attachment Styles */
