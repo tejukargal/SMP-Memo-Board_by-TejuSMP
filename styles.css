@@ -414,11 +414,9 @@ body.dark-mode .header {
     box-shadow: var(--shadow-xl);
 }
 
-/* Top Category Filter (Sticky) */
+/* Top Category Filter (Static) */
 .top-category-filter {
-    position: sticky;
-    top: 0;
-    z-index: 1000;
+    position: static;
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -1455,7 +1453,6 @@ body.dark-mode .notice-card {
     
     .main-content {
         margin-top: 20px;
-        padding-top: 80px; /* Add padding to prevent cards from hiding behind filter bar */
     }
     
     .notice-card {
@@ -1708,7 +1705,6 @@ body.dark-mode .bottom-controls {
     
     .main-content {
         margin-top: 20px;
-        padding-top: 80px; /* Add padding to prevent cards from hiding behind filter bar */
     }
     
     .notice-content {
